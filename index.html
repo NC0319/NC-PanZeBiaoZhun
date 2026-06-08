@@ -663,7 +663,8 @@
             var results = [];
             Object.keys(chapters).forEach(function(key){
                 var ch = chapters[key];
-                if(ch.rules){\n                    ch.rules.forEach(function(rule){
+                if(ch.rules){
+                    ch.rules.forEach(function(rule){
                         var ruleText = rule.num + ' ' + rule.title;
                         rule.items.forEach(function(item){
                             ruleText += ' ' + item.text;
