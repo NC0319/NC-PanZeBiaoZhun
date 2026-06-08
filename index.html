@@ -635,6 +635,7 @@
         // 搜索（优化版）
         var searchHistory = [];
         var currentSearchResults = []; // 存储当前搜索结果
+        var searchTimer = null; // 防抖计时器
         
         function doSearch(q){
             q = q.trim().toLowerCase();
@@ -651,17 +652,31 @@
             
             if(!q){container.innerHTML=''; return;}
             
+            // 防抖处理：延迟300ms执行搜索
+            if(searchTimer) clearTimeout(searchTimer);
+            searchTimer = setTimeout(function(){
+                performSearch(q, container);
+            }, 300);
+        }
+        
+        function performSearch(q, container){
             var results = [];
             Object.keys(chapters).forEach(function(key){
                 var ch = chapters[key];
-                ch.rules.forEach(function(rule){
-                    if(rule.title.toLowerCase().indexOf(q)!==-1 || rule.num.toLowerCase().indexOf(q)!==-1 || JSON.stringify(rule.items).toLowerCase().indexOf(q)!==-1){
-                        results.push({key:key, ch:ch, rule:rule});
-                    }
-                });
+                if(ch.rules){\n                    ch.rules.forEach(function(rule){
+                        var ruleText = rule.num + ' ' + rule.title;
+                        rule.items.forEach(function(item){
+                            ruleText += ' ' + item.text;
+                        });
+                        if(ruleText.toLowerCase().indexOf(q)!==-1){
+                            results.push({key:key, ch:ch, rule:rule});
+                        }
+                    });
+                }
                 if(ch.table){
                     ch.table.forEach(function(row){
-                        if(row.scene.toLowerCase().indexOf(q)!==-1 || row.person.toLowerCase().indexOf(q)!==-1){
+                        var rowText = row.scene + ' ' + row.duty + ' ' + row.person;
+                        if(rowText.toLowerCase().indexOf(q)!==-1){
                             results.push({key:key, ch:ch, row:row});
                         }
                     });
