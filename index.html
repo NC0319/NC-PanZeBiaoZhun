@@ -710,10 +710,9 @@
         
         // 打开搜索结果
         function openSearchResult(idx){
-            var resultDiv = document.querySelectorAll('.search-result')[idx];
-            if(!resultDiv) return;
-            var key = resultDiv.getAttribute('data-key');
-            if(key) showDetail(key);
+            if(!currentSearchResults[idx]) return;
+            var result = currentSearchResults[idx];
+            if(result.key) showDetail(result.key);
         }
         
         // 清除搜索
