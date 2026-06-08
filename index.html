@@ -283,7 +283,16 @@
         @media(min-width:500px) {
             .card-grid { grid-template-columns:repeat(3, 1fr); }
         }
-    </style>
+    
+        /* ===== 打印/PDF样式 ===== */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+            .nav-bar, .status-bar, .bottom-nav, .fab, .no-print { display: none !important; }
+            .page { display: none !important; }
+        }
+</style>
 </head>
 <body>
 
@@ -304,7 +313,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
         <div class="nav-title" id="navTitle">NC判责标准</div>
-        <div class="nav-right"></div>
+        <div class="nav-right"><button onclick="exportPDF()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:4px;" title="导出PDF">📄</button></div>
     </div>
 
     <!-- 主内容 -->
@@ -781,8 +790,62 @@
         function showFavorites(){alert('收藏功能开发中');}
         function showProfile(){alert('个人中心开发中');}
 
+
+        // 导出PDF
+        function exportPDF(){
+            var printHtml = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 - PDF</title><style>';
+            printHtml += 'body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;color:#1a1a1a;line-height:1.6;max-width:800px;margin:0 auto;}';
+            printHtml += 'h1{text-align:center;font-size:24px;margin-bottom:8px;}';
+            printHtml += '.subtitle{text-align:center;color:#757575;margin-bottom:30px;}';
+            printHtml += 'h2{font-size:18px;padding:12px 0 8px;border-bottom:2px solid #5b4fcf;margin-top:24px;}';
+            printHtml += '.rule-num{display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(91,79,207,0.1);color:#5b4fcf;margin:12px 0 6px;}';
+            printHtml += '.rule-title{font-size:15px;font-weight:600;margin-bottom:8px;}';
+            printHtml += '.info-box{padding:10px 12px;border-radius:8px;margin:6px 0;font-size:13px;line-height:1.7;}';
+            printHtml += '.ib-danger{background:#ffebee;border-left:3px solid #e53935;color:#c62828;}';
+            printHtml += '.ib-warning{background:#fff8e1;border-left:3px solid #f9a825;color:#e65100;}';
+            printHtml += '.ib-success{background:#e8f5e9;border-left:3px solid #43a047;color:#2e7d32;}';
+            printHtml += '.ib-info{background:#e3f2fd;border-left:3px solid #5b4fcf;color:#283593;}';
+            printHtml += 'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;}';
+            printHtml += 'th{background:#5b4fcf;color:white;padding:10px 12px;text-align:left;}';
+            printHtml += 'td{padding:9px 12px;border-bottom:0.5px solid #e0e0e0;}';
+            printHtml += '.text-danger{color:#e53935;font-weight:600;}';
+            printHtml += '.text-warning{color:#e65100;font-weight:600;}';
+            printHtml += '.footer{text-align:center;margin-top:30px;font-size:12px;color:#bdbdbd;}';
+            printHtml += '</style></head><body>';
+
+            printHtml += '<h1>📋 NC判责标准</h1>';
+            printHtml += '<div class="subtitle">物流操作责任认定规范 · V1.0 · 8章24条</div>';
+
+            Object.keys(chapters).forEach(function(key){
+                var ch = chapters[key];
+                printHtml += '<h2>'+ch.icon+' '+ch.title+'</h2>';
+                if(ch.table){
+                    printHtml += '<table><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
+                    ch.table.forEach(function(r){printHtml+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==="全责"?"text-danger":"text-warning")+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});
+                    printHtml += '</table>';
+                } else {
+                    ch.rules.forEach(function(rule){
+                        printHtml += '<div class="rule-num">'+rule.num+'</div>';
+                        printHtml += '<div class="rule-title">'+rule.title+'</div>';
+                        rule.items.forEach(function(item){
+                            printHtml += '<div class="info-box ib-'+item.type+'">'+item.text+'</div>';
+                        });
+                    });
+                }
+            });
+
+            printHtml += '<div class="footer">NC判责标准 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div>';
+            printHtml += '</body></html>';
+
+            var win = window.open('', '_blank');
+            win.document.write(printHtml);
+            win.document.close();
+            win.onload = function(){ win.print(); };
+        }
         // 回到顶部
         function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'});}
     </script>
+    <!-- 打印区域（PDF导出用） -->
+    <div id="printArea" style="display:none;"></div>
 </body>
 </html>
