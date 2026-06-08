@@ -343,7 +343,7 @@
                 </div>
                 <div class="grid-card c-red" onclick="openChapter(5)">
                     <div class="card-icon">🧹</div>
-                    <div class="card-title">现场管理</div>
+                    <div class="card-title">操作区疏通与货物装载</div>
                     <div class="card-desc">第12-13条</div>
                 </div>
                 <div class="grid-card c-indigo" onclick="openChapter(6)">
@@ -712,7 +712,7 @@
         function openSearchResult(idx){
             if(!currentSearchResults[idx]) return;
             var result = currentSearchResults[idx];
-            if(result.key) showDetail(result.key);
+            if(result.key) openChapter(result.key);
         }
         
         // 清除搜索
