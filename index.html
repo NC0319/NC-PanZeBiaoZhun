@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NC判责标准</title>
+    <style>
+        :root {
+            --primary: #5b4fcf;
+            --primary-light: #818cf8;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #757575;
+            --text-hint: #bdbdbd;
+            --divider: #e0e0e0;
+            --success: #43a047;
+            --warning: #f9a825;
+            --error: #e53935;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --nav-height: 64px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html { height:100%; overflow:hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            height:100%;
+            display:flex; flex-direction:column;
+            overflow:hidden;
+            -webkit-font-smoothing:antialiased;
+        }
+
+        /* ===== 顶部状态栏 ===== */
+        .status-bar {
+            height:44px; padding-top:var(--safe-top);
+            background: var(--card);
+            display:flex; align-items:center; justify-content:space-between;
+            padding-left:16px; padding-right:16px;
+            font-size:12px; color:var(--text-secondary);
+            border-bottom:0.5px solid var(--divider);
+            flex-shrink:0;
+            z-index:100;
+        }
+        .status-left { display:flex; align-items:center; gap:4px; }
+        .status-right { display:flex; align-items:center; gap:6px; }
+        .battery { width:22px; height:11px; border:1.5px solid var(--text-secondary); border-radius:2px; position:relative; }
+        .battery::after { content:''; position:absolute; right:-4px; top:2.5px; width:2px; height:4px; background:var(--text-secondary); border-radius:0 1px 1px 0; }
+        .battery-level { height:100%; width:70%; background:var(--success); border-radius:1px; }
+
+        /* ===== 顶部导航栏 ===== */
+        .nav-bar {
+            height:52px; background:var(--card);
+            display:flex; align-items:center; justify-content:space-between;
+            padding:0 16px;
+            border-bottom:0.5px solid var(--divider);
+            flex-shrink:0;
+            z-index:100;
+        }
+        .nav-back { width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
+        .nav-title { font-size:17px; font-weight:600; position:absolute; left:50%; transform:translateX(-50%); }
+        .nav-right { width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+            padding-bottom:calc(var(--nav-height) + var(--safe-bottom) + 16px);
+        }
+        .page { display:none; padding:16px; min-height:100%; }
+        .page.active { display:block; animation:fadeIn .3s ease; }
+
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ===== 首页（卡片网格）===== */
+        .hero-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius:20px; padding:24px 20px; margin-bottom:20px;
+            color:white; position:relative; overflow:hidden;
+        }
+        .hero-card::after {
+            content:''; position:absolute; right:-30px; bottom:-30px;
+            width:120px; height:120px; border-radius:50%;
+            background:rgba(255,255,255,0.1);
+        }
+        .hero-emoji { font-size:48px; margin-bottom:12px; display:block; }
+        .hero-title { font-size:24px; font-weight:700; margin-bottom:6px; }
+        .hero-sub { font-size:14px; opacity:0.9; }
+        .hero-version {
+            display:inline-block; margin-top:12px;
+            padding:4px 12px; border-radius:12px;
+            background:rgba(255,255,255,0.2); font-size:12px;
+        }
+
+        .section-title {
+            font-size:13px; font-weight:600; color:var(--text-secondary);
+            text-transform:uppercase; letter-spacing:0.5px;
+            margin:20px 0 12px; padding-left:4px;
+        }
+
+        /* ColorOS 风格卡片网格 */
+        .card-grid {
+            display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+        }
+        .grid-card {
+            background:var(--card); border-radius:16px; padding:20px 16px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+            cursor:pointer; transition:transform .2s, box-shadow .2s;
+            position:relative; overflow:hidden;
+        }
+        .grid-card:active { transform:scale(0.97); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+        .card-icon {
+            width:48px; height:48px; border-radius:14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:24px; margin-bottom:12px;
+        }
+        .card-title { font-size:15px; font-weight:600; margin-bottom:4px; }
+        .card-desc { font-size:12px; color:var(--text-secondary); line-height:1.3; }
+        .card-badge {
+            position:absolute; top:10px; right:10px;
+            font-size:10px; padding:2px 8px; border-radius:8px;
+            font-weight:600;
+        }
+        .badge-new { background:#fff3e0; color:#e65100; }
+
+        /* 卡片彩色背景 */
+        .c-blue .card-icon { background:linear-gradient(135deg,#e8eaf6,#c5cae9); }
+        .c-orange .card-icon { background:linear-gradient(135deg,#fff3e0,#ffe0b2); }
+        .c-green .card-icon { background:linear-gradient(135deg,#e8f5e9,#c8e6c9); }
+        .c-pink .card-icon { background:linear-gradient(135deg,#fce4ec,#f8bbd0); }
+        .c-red .card-icon { background:linear-gradient(135deg,#ffebee,#ffcdd2); }
+        .c-indigo .card-icon { background:linear-gradient(135deg,#e8eaf6,#c5cae9); }
+        .c-purple .card-icon { background:linear-gradient(135deg,#f3e5f5,#e1bee7); }
+        .c-teal .card-icon { background:linear-gradient(135deg,#e0f2f1,#b2dfdb); }
+
+        /* ===== 详情页 ===== */
+        .detail-header {
+            display:flex; align-items:center; gap:14px;
+            margin-bottom:20px; padding:16px;
+            background:var(--card); border-radius:16px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .detail-icon { font-size:36px; }
+        .detail-info { flex:1; }
+        .detail-title { font-size:18px; font-weight:700; margin-bottom:4px; }
+        .detail-sub { font-size:13px; color:var(--text-secondary); }
+
+        .rule-card {
+            background:var(--card); border-radius:16px; padding:16px;
+            margin-bottom:12px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .rule-num {
+            display:inline-block; padding:3px 10px; border-radius:8px;
+            font-size:11px; font-weight:700; margin-bottom:10px;
+            background:rgba(91,79,207,0.1); color:var(--primary);
+        }
+        .rule-title { font-size:15px; font-weight:600; margin-bottom:10px; }
+
+        .info-box {
+            padding:10px 12px; border-radius:10px; margin:6px 0;
+            font-size:13px; line-height:1.6;
+        }
+        .ib-danger { background:#ffebee; border-left:3px solid #e53935; color:#c62828; }
+        .ib-warning { background:#fff8e1; border-left:3px solid #f9a825; color:#e65100; }
+        .ib-success { background:#e8f5e9; border-left:3px solid #43a047; color:#2e7d32; }
+        .ib-info { background:#e3f2fd; border-left:3px solid #5b4fcf; color:#283593; }
+
+        .data-table {
+            width:100%; border-collapse:separate; border-spacing:0;
+            margin:10px 0; font-size:13px;
+            border:1px solid var(--divider); border-radius:10px; overflow:hidden;
+        }
+        .data-table th {
+            background:var(--primary); color:white;
+            padding:10px 12px; text-align:left; font-weight:600;
+        }
+        .data-table td { padding:9px 12px; border-bottom:0.5px solid var(--divider); }
+        .data-table tr:last-child td { border-bottom:none; }
+        .data-table tr:nth-child(even) { background:var(--bg); }
+        .text-danger { color:#e53935; font-weight:600; }
+        .text-warning { color:#e65100; font-weight:600; }
+
+        /* ===== 搜索页 ===== */
+        .search-bar {
+            display:flex; align-items:center; gap:10px;
+            background:var(--card); border-radius:12px;
+            padding:10px 14px; margin-bottom:16px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .search-bar input {
+            flex:1; border:none; outline:none; font-size:15px;
+            font-family:inherit; background:transparent; color:var(--text-primary);
+        }
+        .search-bar input::placeholder { color:var(--text-hint); }
+        .search-icon { color:var(--text-hint); }
+
+        .search-result {
+            background:var(--card); border-radius:12px; padding:14px;
+            margin-bottom:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .search-result .rule-num { margin-bottom:6px; }
+        .search-result .rule-title { font-size:14px; }
+
+        /* ===== 底部导航栏（ColorOS风格）===== */
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0;
+            height:var(--nav-height);
+            background:rgba(255,255,255,0.95);
+            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            border-top:0.5px solid var(--divider);
+            display:flex; align-items:stretch;
+            padding-bottom:var(--safe-bottom);
+            z-index:1000;
+        }
+        .nav-item {
+            flex:1; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:3px;
+            cursor:pointer; color:var(--text-hint);
+            transition:color .2s; position:relative;
+        }
+        .nav-item.active { color:var(--primary); }
+        .nav-item .ni-icon { font-size:22px; line-height:1; }
+        .nav-item .ni-label { font-size:10px; font-weight:500; }
+        .nav-item.active .ni-icon { animation:navBounce .3s ease; }
+        @keyframes navBounce {
+            0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)}
+        }
+
+        /* ===== 浮动按钮 ===== */
+        .fab {
+            position:fixed; right:20px; bottom:calc(var(--nav-height) + var(--safe-bottom) + 20px);
+            width:52px; height:52px; border-radius:16px;
+            background:linear-gradient(135deg, #667eea, #764ba2);
+            color:white; display:flex; align-items:center; justify-content:center;
+            font-size:22px; box-shadow:0 4px 16px rgba(102,126,234,0.4);
+            cursor:pointer; z-index:999;
+            transition:transform .2s;
+        }
+        .fab:active { transform:scale(0.9); }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align:center; padding:60px 20px; color:var(--text-hint);
+        }
+        .empty-icon { font-size:48px; margin-bottom:12px; }
+        .empty-text { font-size:15px; }
+
+        /* ===== 滚动条 ===== */
+        .main-content::-webkit-scrollbar { width:0; }
+
+        @media(min-width:500px) {
+            .card-grid { grid-template-columns:repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-left">
+            <span id="clock">9:41</span>
+        </div>
+        <div class="status-right">
+            <span>📶</span><span>📡</span>
+            <div class="battery"><div class="battery-level"></div></div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar" id="navBar">
+        <div class="nav-back" id="navBack" onclick="goBack()" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="nav-title" id="navTitle">NC判责标准</div>
+        <div class="nav-right"></div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content" id="mainContent">
+
+        <!-- 首页 -->
+        <div class="page active" id="page-home">
+            <div class="hero-card">
+                <span class="hero-emoji">📋</span>
+                <div class="hero-title">NC判责标准</div>
+                <div class="hero-sub">物流操作责任认定规范</div>
+                <span class="hero-version">V1.0 · 8章24条</span>
+            </div>
+
+            <div class="section-title">全部章节</div>
+            <div class="card-grid">
+                <div class="grid-card c-blue" onclick="openChapter(1)">
+                    <div class="card-icon">📦</div>
+                    <div class="card-title">搬运操作</div>
+                    <div class="card-desc">第1-3条</div>
+                </div>
+                <div class="grid-card c-orange" onclick="openChapter(2)">
+                    <div class="card-icon">⭐</div>
+                    <div class="card-title">特殊订单</div>
+                    <div class="card-desc">第4条</div>
+                </div>
+                <div class="grid-card c-green" onclick="openChapter(3)">
+                    <div class="card-icon">🚚</div>
+                    <div class="card-title">码放装载</div>
+                    <div class="card-desc">第5-8条</div>
+                </div>
+                <div class="grid-card c-pink" onclick="openChapter(4)">
+                    <div class="card-icon">🔄</div>
+                    <div class="card-title">分拣交接</div>
+                    <div class="card-desc">第9-11条</div>
+                </div>
+                <div class="grid-card c-red" onclick="openChapter(5)">
+                    <div class="card-icon">🧹</div>
+                    <div class="card-title">现场管理</div>
+                    <div class="card-desc">第12-13条</div>
+                </div>
+                <div class="grid-card c-indigo" onclick="openChapter(6)">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-title">异常处理</div>
+                    <div class="card-desc">第14-21条</div>
+                </div>
+                <div class="grid-card c-purple" onclick="openChapter(7)">
+                    <div class="card-icon">🆕</div>
+                    <div class="card-title">补充操作规范</div>
+                    <div class="card-desc">第22-24条</div>
+                    <div class="card-badge badge-new">NEW</div>
+                </div>
+                <div class="grid-card c-teal" onclick="openChapter(8)">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">速查表</div>
+                    <div class="card-desc">快速查找</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 章节详情页 -->
+        <div class="page" id="page-detail">
+            <div id="detailContent"></div>
+        </div>
+
+        <!-- 搜索页 -->
+        <div class="page" id="page-search">
+            <div class="search-bar">
+                <span class="search-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+                </span>
+                <input type="text" id="searchInput" placeholder="搜索规则…" oninput="doSearch(this.value)">
+            </div>
+            <div id="searchResults"></div>
+        </div>
+
+    </div>
+
+    <!-- 浮动按钮 -->
+    <div class="fab" onclick="scrollToTop()" title="回到顶部">⬆</div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home',this)">
+            <div class="ni-icon">🏠</div>
+            <div class="ni-label">首页</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('search',this)">
+            <div class="ni-icon">🔍</div>
+            <div class="ni-label">搜索</div>
+        </div>
+        <div class="nav-item" onclick="showFavorites()">
+            <div class="ni-icon">⭐</div>
+            <div class="ni-label">收藏</div>
+        </div>
+        <div class="nav-item" onclick="showProfile()">
+            <div class="ni-icon">👤</div>
+            <div class="ni-label">我的</div>
+        </div>
+    </div>
+
+    <script>
+        // 时钟
+        function updateClock(){var d=new Date();var h=d.getHours(),m=d.getMinutes();document.getElementById('clock').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m}updateClock();setInterval(updateClock,30000);
+
+        // 页面切换
+        function switchTab(page, el){
+            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+            document.getElementById('page-'+page).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+            if(el) el.classList.add('active');
+            if(page==='home'){document.getElementById('navBack').style.display='none';document.getElementById('navTitle').textContent='NC判责标准'}
+        }
+
+        // 打开章节
+        function openChapter(n){
+            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+            document.getElementById('page-detail').classList.add('active');
+            document.getElementById('navBack').style.display='flex';
+            renderChapter(n);
+        }
+
+        function goBack(){
+            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+            document.getElementById('page-home').classList.add('active');
+            document.getElementById('navBack').style.display='none';
+            document.getElementById('navTitle').textContent='NC判责标准';
+        }
+
+        // 渲染章节内容
+        var chapters = {
+            1: {
+                icon:'📦', title:'第一章 · 搬运操作', sub:'第1-3条',
+                rules:[
+                    {num:'第1条', title:'严禁暴力操作', items:[
+                        {type:'danger', text:'严禁：踢货、坐货、踩货、抛货、扔货'},
+                        {type:'danger', text:'严禁：直接在地上拖拽快递货物（距离标准：20cm）'},
+                        {type:'danger', text:'严禁：集包袋直接拖地搬运（空袋除外）'},
+                        {type:'success', text:'正确：使用托盘、笼车、周转框等容器搬运'},
+                        {type:'warning', text:'后果：被AI抓拍 → 面谈 + 承担所有异常关联责任'}
+                    ]},
+                    {num:'第2条', title:'投货操作标准', items:[
+                        {type:'success', text:'面单朝上依次投放，不能货物重叠'},
+                        {type:'warning', text:'未按标准导致丢失或延误 → 投货人员承担责任'}
+                    ]},
+                    {num:'第3条', title:'破损拦截机制', items:[
+                        {type:'warning', text:'发现破损 → 及时拦截，1小时内拉至异常区报备'},
+                        {type:'danger', text:'未拦截导致异常挂责 → 投货人员承担责任'}
+                    ]}
+                ]
+            },
+            2: {
+                icon:'⭐', title:'第二章 · 特殊订单', sub:'第4条',
+                rules:[
+                    {num:'第4条', title:'京准达特安等特殊订单', items:[
+                        {type:'info', text:'京准达=准时送达；特安=特殊安全保障'},
+                        {type:'success', text:'第一时间及时交接至各条线，不允许滞留'},
+                        {type:'danger', text:'超时未交接导致延误 → 转货人员承担后续责任'}
+                    ]}
+                ]
+            },
+            3: {
+                icon:'🚚', title:'第三章 · 码放与装载', sub:'第5-8条',
+                rules:[
+                    {num:'第5条', title:'码放三不原则', items:[
+                        {type:'success', text:'1️⃣ 大不压小 — 大箱子不压在小箱子上'},
+                        {type:'success', text:'2️⃣ 重不压轻 — 重货在下，轻货在上'},
+                        {type:'success', text:'3️⃣ 长不压短 — 长条货放下面或侧面'},
+                        {type:'warning', text:'🍷 酒水类码放高度不能超过1.2米'},
+                        {type:'danger', text:'未按标准操作导致运输破损 → 码板人员承担责任'}
+                    ]},
+                    {num:'第6条', title:'集包袋操作规范', items:[
+                        {type:'success', text:'在监控下及时翻袋，确保没遗漏'},
+                        {type:'danger', text:'未翻袋或不规范 → 需承担相应责任'}
+                    ]},
+                    {num:'第7条', title:'人工T20拉货规范', items:[
+                        {type:'info', text:'拉货前绕货一圈评估掉落风险'},
+                        {type:'warning', text:'刚起步掉货 → 拣货人员全责'},
+                        {type:'warning', text:'途中掉货 → 车手+拣货 共责'},
+                        {type:'warning', text:'快到地方掉货 → 车手全责'}
+                    ]},
+                    {num:'第8条', title:'无人T20操作规范', items:[
+                        {type:'info', text:'设置目的地需准确；驾驶前绕货一周评估风险'},
+                        {type:'warning', text:'起步掉货 → 码板人员全责'},
+                        {type:'warning', text:'途中/终点掉货 → 拣货人员与当班次所有人共责'},
+                        {type:'warning', text:'提醒3次以上仍掉货 → 码板人员全责'}
+                    ]}
+                ]
+            },
+            4: {
+                icon:'🔄', title:'第四章 · 分拣与交接', sub:'第9-11条',
+                rules:[
+                    {num:'第9条', title:'错分责任追究', items:[
+                        {type:'warning', text:'拣货人员错码托盘/拉货人员错拉 → 对应拣货人员承担责任'},
+                        {type:'danger', text:'模组带错分滑槽 → 模组带全责（当班次所有人）'}
+                    ]},
+                    {num:'第10条', title:'封车交接责任', items:[
+                        {type:'success', text:'封车前十分钟内需单独交接给对应条线'},
+                        {type:'danger', text:'超时未交接 → 交接人员责任'}
+                    ]},
+                    {num:'第11条', title:'滑槽清理责任', items:[
+                        {type:'success', text:'模组带滑槽需要及时清理'},
+                        {type:'danger', text:'清理不及时导致落格撞击破损 → 抹货人员责任（人力不足除外）'}
+                    ]}
+                ]
+            },
+            5: {
+                icon:'🧹', title:'第五章 · 现场管理', sub:'第12-13条',
+                rules:[
+                    {num:'第12条', title:'堵货疏通', items:[
+                        {type:'success', text:'回流及操作区出现堵货需及时疏通'},
+                        {type:'danger', text:'未及时清理导致异常 → 对应操作区域人员承担责任（人力不足除外）'}
+                    ]},
+                    {num:'第13条', title:'入笼标准', items:[
+                        {type:'success', text:'栋货入笼需进行货物码放，不允许随意入笼车'},
+                        {type:'danger', text:'未按标准操作导致异常发生破损 → 拣货人员承担责任'}
+                    ]}
+                ]
+            },
+            6: {
+                icon:'⚠️', title:'第六章 · 异常处理', sub:'第14-21条',
+                rules:[
+                    {num:'第14条', title:'发货组回流破损处理', items:[
+                        {type:'success', text:'不要乱拉，让他们自己拉过来并邮件报备'},
+                        {type:'success', text:'所有拉至异常组的异常破损单需阐明地点、情况'}
+                    ]},
+                    {num:'第15条', title:'人为破损责任', items:[
+                        {type:'success', text:'自己人为造成的破损，自己主动承担'},
+                        {type:'danger', text:'禁止混淆到回流或卸车拦截报备货物里面'},
+                        {type:'danger', text:'一经发现 → 责任人理赔全责 + 后续相关联所有异常'}
+                    ]},
+                    {num:'第16条', title:'意外事故处理', items:[
+                        {type:'warning', text:'不可抗力：地震、火灾、灯带掉落、被物体撞击、高笼框开门掉货等'},
+                        {type:'warning', text:'责任划分：责任人与当班次所有人共责'}
+                    ]},
+                    {num:'第17条', title:'异常报备规范', items:[
+                        {type:'success', text:'严格按照判责规定7.0报备修复下发，保证准确性'},
+                        {type:'danger', text:'报备不规范 → 谁报备的谁承担责任'}
+                    ]},
+                    {num:'第18条', title:'异常破损订单处理', items:[
+                        {type:'success', text:'当波次无法下发，需验货滞留登记台账'},
+                        {type:'warning', text:'无客观原因，不允许超过24H'}
+                    ]},
+                    {num:'第19条', title:'异常前置处理', items:[
+                        {type:'success', text:'及时前置处理丢破损，联系客户及商家把损失降到最低'},
+                        {type:'danger', text:'不允许出现连续多次买赔'},
+                        {type:'warning', text:'高值物品必须联系至少两方，电话通话三个以上'}
+                    ]},
+                    {num:'第20条', title:'三无上报规范', items:[
+                        {type:'success', text:'同位置单号需上报准确，多检查三无，确认无误再上报'},
+                        {type:'danger', text:'未按要求检查导致丢损延误 → 上报人员责任'}
+                    ]},
+                    {num:'第21条', title:'异常判责举证', items:[
+                        {type:'success', text:'异常判责举证由异常员自行处理闭环'}
+                    ]}
+                ]
+            },
+            7: {
+                icon:'🆕', title:'第七章 · 补充操作规范', sub:'第22-24条 · 新增',
+                rules:[
+                    {num:'第22条', title:'干湿分离原则', items:[
+                        {type:'warning', text:'重要：无论是特快还是普货，即便是破损异常货物，都需按干湿分离原则码放'},
+                        {type:'info', text:'防止液体泄漏污染其他货物，造成二次损失'},
+                        {type:'danger', text:'不遵守者承担后续相关联所有异常'}
+                    ]},
+                    {num:'第23条', title:'轻薄件处理', items:[
+                        {type:'success', text:'及时收回流，临近节点拣货人员和车手相互提醒'},
+                        {type:'success', text:'及时送至对应条线'},
+                        {type:'danger', text:'未及时拉 → 车手责任'},
+                        {type:'danger', text:'已提醒但未执行 → 对应拣货人员责任'}
+                    ]},
+                    {num:'第24条', title:'模组带拦截标准', items:[
+                        {type:'warning', text:'必须拦截：超长超宽、柱状/桶装、编织袋/防水袋打包、玻璃制品、破损货物'},
+                        {type:'danger', text:'多次不按标准拦截 → 责任定责至个人'}
+                    ]}
+                ]
+            },
+            8: {
+                icon:'📊', title:'第八章 · 速查表', sub:'快速查找责任归属',
+                table: [
+                    {scene:'人工T20起步掉货', duty:'全责', person:'拣货人员'},
+                    {scene:'人工T20途中掉货', duty:'共责', person:'车手、拣货'},
+                    {scene:'人工T20终点掉货', duty:'全责', person:'车手'},
+                    {scene:'无人T20起步掉货', duty:'全责', person:'码板人员'},
+                    {scene:'无人T20途中/终点掉货', duty:'共责', person:'当班次所有人'},
+                    {scene:'提醒3次以上仍掉货', duty:'全责', person:'码板人员'},
+                    {scene:'意外事故/不可抗力', duty:'共责', person:'当班次所有人'},
+                    {scene:'轻薄件未及时拉', duty:'全责', person:'车手'}
+                ]
+            }
+        };
+
+        function renderChapter(n){
+            var ch = chapters[n];
+            if(!ch) return;
+            document.getElementById('navTitle').textContent = ch.title.split('·')[0].trim();
+            var html = '<div class="detail-header"><div class="detail-icon">'+ch.icon+'</div><div class="detail-info"><div class="detail-title">'+ch.title+'</div><div class="detail-sub">'+ch.sub+'</div></div></div>';
+
+            if(ch.table){
+                html += '<div style="background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);overflow-x:auto"><table class="data-table"><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
+                ch.table.forEach(function(r){html+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==='全责'?'text-danger':'text-warning')+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});
+                html += '</table></div>';
+            } else {
+                ch.rules.forEach(function(rule){
+                    html += '<div class="rule-card"><div class="rule-num">'+rule.num+'</div><div class="rule-title">'+rule.title+'</div>';
+                    rule.items.forEach(function(item){
+                        var cls = 'ib-' + item.type;
+                        html += '<div class="info-box '+cls+'">'+item.text+'</div>';
+                    });
+                    html += '</div>';
+                });
+            }
+            document.getElementById('detailContent').innerHTML = html;
+        }
+
+        // 搜索
+        function doSearch(q){
+            q = q.trim().toLowerCase();
+            var container = document.getElementById('searchResults');
+            if(!q){container.innerHTML='';return;}
+            var results = [];
+            Object.keys(chapters).forEach(function(key){
+                var ch = chapters[key];
+                ch.rules.forEach(function(rule){
+                    if(rule.title.toLowerCase().indexOf(q)!==-1 || rule.num.toLowerCase().indexOf(q)!==-1 || JSON.stringify(rule.items).toLowerCase().indexOf(q)!==-1){
+                        results.push({ch:ch, rule:rule});
+                    }
+                });
+                if(ch.table){
+                    ch.table.forEach(function(row){
+                        if(row.scene.toLowerCase().indexOf(q)!==-1 || row.person.toLowerCase().indexOf(q)!==-1){
+                            results.push({ch:ch, row:row});
+                        }
+                    });
+                }
+            });
+            if(results.length===0){
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到相关内容</div></div>';
+                return;
+            }
+            var html = '';
+            results.forEach(function(r){
+                html += '<div class="search-result"><div class="rule-num">'+r.ch.icon+' '+r.ch.title+'</div><div class="rule-title">'+(r.rule?r.rule.num+' '+r.rule.title:(r.row?r.row.scene:''))+'</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        // 收藏 & 我的（占位）
+        function showFavorites(){alert('收藏功能开发中');}
+        function showProfile(){alert('个人中心开发中');}
+
+        // 回到顶部
+        function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'});}
+    </script>
+</body>
+</html>
