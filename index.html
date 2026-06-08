@@ -197,6 +197,34 @@
         }
         .search-bar input::placeholder { color:var(--text-hint); }
         .search-icon { color:var(--text-hint); }
+        .search-clear {
+            display:none; background:none; border:none;
+            font-size:20px; color:var(--text-hint);
+            cursor:pointer; padding:0 4px;
+            line-height:1;
+        }
+        .search-clear.show { display:block; }
+
+        .search-suggestions {
+            display:none; margin-bottom:16px;
+            padding:12px 16px;
+            background:var(--card);
+            border-radius:12px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .search-suggestions.show { display:block; }
+        .suggestion-title {
+            font-size:12px; color:var(--text-secondary);
+            margin-bottom:8px;
+        }
+        .suggestion-tags { display:flex; flex-wrap:wrap; gap:8px; }
+        .suggestion-tags .tag {
+            padding:6px 12px; background:var(--bg);
+            border-radius:16px; font-size:13px;
+            color:var(--text-primary);
+            cursor:pointer; transition:all .2s;
+        }
+        .suggestion-tags .tag:active { background:var(--primary); color:white; }
 
         .search-result {
             background:var(--card); border-radius:12px; padding:14px;
@@ -348,7 +376,19 @@
                 <span class="search-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
                 </span>
-                <input type="text" id="searchInput" placeholder="搜索规则…" oninput="doSearch(this.value)">
+                <input type="text" id="searchInput" placeholder="搜索规则…" oninput="doSearch(this.value)" onkeydown="handleSearchKeydown(event)">
+                <button class="search-clear" id="searchClearBtn" onclick="clearSearch()">×</button>
+            </div>
+            <div class="search-suggestions" id="searchSuggestions">
+                <div class="suggestion-title">热门搜索</div>
+                <div class="suggestion-tags">
+                    <span class="tag" onclick="applySuggestion('暴力')">暴力操作</span>
+                    <span class="tag" onclick="applySuggestion('掉货')">掉货</span>
+                    <span class="tag" onclick="applySuggestion('破损')">破损</span>
+                    <span class="tag" onclick="applySuggestion('干湿')">干湿分离</span>
+                    <span class="tag" onclick="applySuggestion('轻薄')">轻薄件</span>
+                    <span class="tag" onclick="applySuggestion('拦截')">拦截</span>
+                </div>
             </div>
             <div id="searchResults"></div>
         </div>
@@ -592,37 +632,135 @@
             document.getElementById('detailContent').innerHTML = html;
         }
 
-        // 搜索
+        // 搜索（优化版）
+        var searchHistory = [];
+        var currentSearchResults = []; // 存储当前搜索结果
+        
         function doSearch(q){
             q = q.trim().toLowerCase();
             var container = document.getElementById('searchResults');
-            if(!q){container.innerHTML='';return;}
+            var clearBtn = document.getElementById('searchClearBtn');
+            var suggestions = document.getElementById('searchSuggestions');
+            
+            // 显示/隐藏清除按钮
+            if(q && clearBtn) clearBtn.classList.add('show');
+            else if(clearBtn) clearBtn.classList.remove('show');
+            
+            // 隐藏建议
+            if(suggestions) suggestions.classList.remove('show');
+            
+            if(!q){container.innerHTML=''; return;}
+            
             var results = [];
             Object.keys(chapters).forEach(function(key){
                 var ch = chapters[key];
                 ch.rules.forEach(function(rule){
                     if(rule.title.toLowerCase().indexOf(q)!==-1 || rule.num.toLowerCase().indexOf(q)!==-1 || JSON.stringify(rule.items).toLowerCase().indexOf(q)!==-1){
-                        results.push({ch:ch, rule:rule});
+                        results.push({key:key, ch:ch, rule:rule});
                     }
                 });
                 if(ch.table){
                     ch.table.forEach(function(row){
                         if(row.scene.toLowerCase().indexOf(q)!==-1 || row.person.toLowerCase().indexOf(q)!==-1){
-                            results.push({ch:ch, row:row});
+                            results.push({key:key, ch:ch, row:row});
                         }
                     });
                 }
             });
+            
+            // 保存搜索结果
+            currentSearchResults = results;
+            
             if(results.length===0){
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到相关内容</div></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到相关内容</div><div class="empty-hint">试试其他关键词，如"暴力"、"掉货"</div></div>';
                 return;
             }
-            var html = '';
-            results.forEach(function(r){
-                html += '<div class="search-result"><div class="rule-num">'+r.ch.icon+' '+r.ch.title+'</div><div class="rule-title">'+(r.rule?r.rule.num+' '+r.rule.title:(r.row?r.row.scene:''))+'</div></div>';
+            
+            // 显示结果数量
+            var resultCount = '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;padding:0 4px;">找到 '+results.length+' 个结果</div>';
+            
+            var html = resultCount;
+            results.forEach(function(r, idx){
+                var title = r.rule ? r.rule.num+' '+r.rule.title : (r.row ? r.row.scene : '');
+                // 高亮匹配文字
+                title = highlightText(title, q);
+                var chapterInfo = '<span style="font-size:12px;color:var(--text-secondary);">'+r.ch.icon+' '+r.ch.title+'</span>';
+                
+                html += '<div class="search-result" onclick="openSearchResult('+idx+')">'+
+                    '<div class="rule-num">'+chapterInfo+'</div>'+
+                    '<div class="rule-title">'+title+'</div>'+
+                '</div>';
             });
             container.innerHTML = html;
+            
+            // 保存到搜索历史
+            if(q.length > 1 && searchHistory.indexOf(q)===-1){
+                searchHistory.unshift(q);
+                if(searchHistory.length > 10) searchHistory.pop();
+            }
         }
+        
+        // 高亮文字
+        function highlightText(text, keyword){
+            if(!keyword) return text;
+            var idx = text.toLowerCase().indexOf(keyword.toLowerCase());
+            if(idx === -1) return text;
+            return text.substring(0, idx) + '<span style="background:#FEF3C7;color:#92400E;padding:1px 2px;border-radius:2px;font-weight:600;">' + text.substring(idx, idx+keyword.length) + '</span>' + text.substring(idx+keyword.length);
+        }
+        
+        // 打开搜索结果
+        function openSearchResult(idx){
+            var resultDiv = document.querySelectorAll('.search-result')[idx];
+            if(!resultDiv) return;
+            var key = resultDiv.getAttribute('data-key');
+            if(key) showDetail(key);
+        }
+        
+        // 清除搜索
+        function clearSearch(){
+            var input = document.getElementById('searchInput');
+            if(input){
+                input.value = '';
+                doSearch('');
+                input.focus();
+            }
+        }
+        
+        // 应用搜索建议
+        function applySuggestion(text){
+            var input = document.getElementById('searchInput');
+            if(input){
+                input.value = text;
+                doSearch(text);
+            }
+        }
+        
+        // 搜索框键盘事件
+        function handleSearchKeydown(event){
+            if(event.key === 'Escape'){
+                clearSearch();
+            }
+        }
+        
+        // 显示搜索建议
+        document.addEventListener('DOMContentLoaded', function(){
+            var searchInput = document.getElementById('searchInput');
+            if(searchInput){
+                searchInput.addEventListener('focus', function(){
+                    if(this.value.trim() === ''){
+                        var suggestions = document.getElementById('searchSuggestions');
+                        if(suggestions) suggestions.classList.add('show');
+                    }
+                });
+                
+                searchInput.addEventListener('blur', function(){
+                    setTimeout(function(){
+                        var suggestions = document.getElementById('searchSuggestions');
+                        if(suggestions) suggestions.classList.remove('show');
+                    }, 200);
+                });
+            }
+        });
 
         // 收藏 & 我的（占位）
         function showFavorites(){alert('收藏功能开发中');}
