@@ -1,851 +1,756 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NC判责标准</title>
-    <style>
-        :root {
-            --primary: #5b4fcf;
-            --primary-light: #818cf8;
-            --bg: #f5f5f5;
-            --card: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #757575;
-            --text-hint: #bdbdbd;
-            --divider: #e0e0e0;
-            --success: #43a047;
-            --warning: #f9a825;
-            --error: #e53935;
-            --safe-top: env(safe-area-inset-top, 20px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --nav-height: 64px;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-        html { height:100%; overflow:hidden; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: var(--bg);
-            color: var(--text-primary);
-            height:100%;
-            display:flex; flex-direction:column;
-            overflow:hidden;
-            -webkit-font-smoothing:antialiased;
-        }
-
-        /* ===== 顶部状态栏 ===== */
-        .status-bar {
-            height:44px; padding-top:var(--safe-top);
-            background: var(--card);
-            display:flex; align-items:center; justify-content:space-between;
-            padding-left:16px; padding-right:16px;
-            font-size:12px; color:var(--text-secondary);
-            border-bottom:0.5px solid var(--divider);
-            flex-shrink:0;
-            z-index:100;
-        }
-        .status-left { display:flex; align-items:center; gap:4px; }
-        .status-right { display:flex; align-items:center; gap:6px; }
-        .battery { width:22px; height:11px; border:1.5px solid var(--text-secondary); border-radius:2px; position:relative; }
-        .battery::after { content:''; position:absolute; right:-4px; top:2.5px; width:2px; height:4px; background:var(--text-secondary); border-radius:0 1px 1px 0; }
-        .battery-level { height:100%; width:70%; background:var(--success); border-radius:1px; }
-
-        /* ===== 顶部导航栏 ===== */
-        .nav-bar {
-            height:52px; background:var(--card);
-            display:flex; align-items:center; justify-content:space-between;
-            padding:0 16px;
-            border-bottom:0.5px solid var(--divider);
-            flex-shrink:0;
-            z-index:100;
-        }
-        .nav-back { width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
-        .nav-title { font-size:17px; font-weight:600; position:absolute; left:50%; transform:translateX(-50%); }
-        .nav-right { width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
-
-        /* ===== 主内容区 ===== */
-        .main-content {
-            flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
-            padding-bottom:calc(var(--nav-height) + var(--safe-bottom) + 16px);
-        }
-        .page { display:none; padding:16px; min-height:100%; }
-        .page.active { display:block; animation:fadeIn .3s ease; }
-
-        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-        /* ===== 首页（卡片网格）===== */
-        .hero-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius:20px; padding:24px 20px; margin-bottom:20px;
-            color:white; position:relative; overflow:hidden;
-        }
-        .hero-card::after {
-            content:''; position:absolute; right:-30px; bottom:-30px;
-            width:120px; height:120px; border-radius:50%;
-            background:rgba(255,255,255,0.1);
-        }
-        .hero-emoji { font-size:48px; margin-bottom:12px; display:block; }
-        .hero-title { font-size:24px; font-weight:700; margin-bottom:6px; }
-        .hero-sub { font-size:14px; opacity:0.9; }
-        .hero-version {
-            display:inline-block; margin-top:12px;
-            padding:4px 12px; border-radius:12px;
-            background:rgba(255,255,255,0.2); font-size:12px;
-        }
-
-        .section-title {
-            font-size:13px; font-weight:600; color:var(--text-secondary);
-            text-transform:uppercase; letter-spacing:0.5px;
-            margin:20px 0 12px; padding-left:4px;
-        }
-
-        /* ColorOS 风格卡片网格 */
-        .card-grid {
-            display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
-        }
-        .grid-card {
-            background:var(--card); border-radius:16px; padding:20px 16px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.04);
-            cursor:pointer; transition:transform .2s, box-shadow .2s;
-            position:relative; overflow:hidden;
-        }
-        .grid-card:active { transform:scale(0.97); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
-        .card-icon {
-            width:48px; height:48px; border-radius:14px;
-            display:flex; align-items:center; justify-content:center;
-            font-size:24px; margin-bottom:12px;
-        }
-        .card-title { font-size:15px; font-weight:600; margin-bottom:4px; }
-        .card-desc { font-size:12px; color:var(--text-secondary); line-height:1.3; }
-        .card-badge {
-            position:absolute; top:10px; right:10px;
-            font-size:10px; padding:2px 8px; border-radius:8px;
-            font-weight:600;
-        }
-        .badge-new { background:#fff3e0; color:#e65100; }
-
-        /* 卡片彩色背景 */
-        .c-blue .card-icon { background:linear-gradient(135deg,#e8eaf6,#c5cae9); }
-        .c-orange .card-icon { background:linear-gradient(135deg,#fff3e0,#ffe0b2); }
-        .c-green .card-icon { background:linear-gradient(135deg,#e8f5e9,#c8e6c9); }
-        .c-pink .card-icon { background:linear-gradient(135deg,#fce4ec,#f8bbd0); }
-        .c-red .card-icon { background:linear-gradient(135deg,#ffebee,#ffcdd2); }
-        .c-indigo .card-icon { background:linear-gradient(135deg,#e8eaf6,#c5cae9); }
-        .c-purple .card-icon { background:linear-gradient(135deg,#f3e5f5,#e1bee7); }
-        .c-teal .card-icon { background:linear-gradient(135deg,#e0f2f1,#b2dfdb); }
-
-        /* ===== 详情页 ===== */
-        .detail-header {
-            display:flex; align-items:center; gap:14px;
-            margin-bottom:20px; padding:16px;
-            background:var(--card); border-radius:16px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        }
-        .detail-icon { font-size:36px; }
-        .detail-info { flex:1; }
-        .detail-title { font-size:18px; font-weight:700; margin-bottom:4px; }
-        .detail-sub { font-size:13px; color:var(--text-secondary); }
-
-        .rule-card {
-            background:var(--card); border-radius:16px; padding:16px;
-            margin-bottom:12px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        }
-        .rule-num {
-            display:inline-block; padding:3px 10px; border-radius:8px;
-            font-size:11px; font-weight:700; margin-bottom:10px;
-            background:rgba(91,79,207,0.1); color:var(--primary);
-        }
-        .rule-title { font-size:15px; font-weight:600; margin-bottom:10px; }
-
-        .info-box {
-            padding:10px 12px; border-radius:10px; margin:6px 0;
-            font-size:13px; line-height:1.6;
-        }
-        .ib-danger { background:#ffebee; border-left:3px solid #e53935; color:#c62828; }
-        .ib-warning { background:#fff8e1; border-left:3px solid #f9a825; color:#e65100; }
-        .ib-success { background:#e8f5e9; border-left:3px solid #43a047; color:#2e7d32; }
-        .ib-info { background:#e3f2fd; border-left:3px solid #5b4fcf; color:#283593; }
-
-        .data-table {
-            width:100%; border-collapse:separate; border-spacing:0;
-            margin:10px 0; font-size:13px;
-            border:1px solid var(--divider); border-radius:10px; overflow:hidden;
-        }
-        .data-table th {
-            background:var(--primary); color:white;
-            padding:10px 12px; text-align:left; font-weight:600;
-        }
-        .data-table td { padding:9px 12px; border-bottom:0.5px solid var(--divider); }
-        .data-table tr:last-child td { border-bottom:none; }
-        .data-table tr:nth-child(even) { background:var(--bg); }
-        .text-danger { color:#e53935; font-weight:600; }
-        .text-warning { color:#e65100; font-weight:600; }
-
-        /* ===== 搜索页 ===== */
-        .search-bar {
-            display:flex; align-items:center; gap:10px;
-            background:var(--card); border-radius:12px;
-            padding:10px 14px; margin-bottom:16px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        }
-        .search-bar input {
-            flex:1; border:none; outline:none; font-size:15px;
-            font-family:inherit; background:transparent; color:var(--text-primary);
-        }
-        .search-bar input::placeholder { color:var(--text-hint); }
-        .search-icon { color:var(--text-hint); }
-        .search-clear {
-            display:none; background:none; border:none;
-            font-size:20px; color:var(--text-hint);
-            cursor:pointer; padding:0 4px;
-            line-height:1;
-        }
-        .search-clear.show { display:block; }
-
-        .search-suggestions {
-            display:none; margin-bottom:16px;
-            padding:12px 16px;
-            background:var(--card);
-            border-radius:12px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        }
-        .search-suggestions.show { display:block; }
-        .suggestion-title {
-            font-size:12px; color:var(--text-secondary);
-            margin-bottom:8px;
-        }
-        .suggestion-tags { display:flex; flex-wrap:wrap; gap:8px; }
-        .suggestion-tags .tag {
-            padding:6px 12px; background:var(--bg);
-            border-radius:16px; font-size:13px;
-            color:var(--text-primary);
-            cursor:pointer; transition:all .2s;
-        }
-        .suggestion-tags .tag:active { background:var(--primary); color:white; }
-
-        .search-result {
-            background:var(--card); border-radius:12px; padding:14px;
-            margin-bottom:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        }
-        .search-result .rule-num { margin-bottom:6px; }
-        .search-result .rule-title { font-size:14px; }
-
-        /* ===== 底部导航栏（ColorOS风格）===== */
-        .bottom-nav {
-            position:fixed; bottom:0; left:0; right:0;
-            height:var(--nav-height);
-            background:rgba(255,255,255,0.95);
-            backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-            border-top:0.5px solid var(--divider);
-            display:flex; align-items:stretch;
-            padding-bottom:var(--safe-bottom);
-            z-index:1000;
-        }
-        .nav-item {
-            flex:1; display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:3px;
-            cursor:pointer; color:var(--text-hint);
-            transition:color .2s; position:relative;
-        }
-        .nav-item.active { color:var(--primary); }
-        .nav-item .ni-icon { font-size:22px; line-height:1; }
-        .nav-item .ni-label { font-size:10px; font-weight:500; }
-        .nav-item.active .ni-icon { animation:navBounce .3s ease; }
-        @keyframes navBounce {
-            0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)}
-        }
-
-        /* ===== 浮动按钮 ===== */
-        .fab {
-            position:fixed; right:20px; bottom:calc(var(--nav-height) + var(--safe-bottom) + 20px);
-            width:52px; height:52px; border-radius:16px;
-            background:linear-gradient(135deg, #667eea, #764ba2);
-            color:white; display:flex; align-items:center; justify-content:center;
-            font-size:22px; box-shadow:0 4px 16px rgba(102,126,234,0.4);
-            cursor:pointer; z-index:999;
-            transition:transform .2s;
-        }
-        .fab:active { transform:scale(0.9); }
-
-        /* ===== 空状态 ===== */
-        .empty-state {
-            text-align:center; padding:60px 20px; color:var(--text-hint);
-        }
-        .empty-icon { font-size:48px; margin-bottom:12px; }
-        .empty-text { font-size:15px; }
-
-        /* ===== 滚动条 ===== */
-        .main-content::-webkit-scrollbar { width:0; }
-
-        @media(min-width:500px) {
-            .card-grid { grid-template-columns:repeat(3, 1fr); }
-        }
-    
-        /* ===== 打印/PDF样式 ===== */
-        @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-            .nav-bar, .status-bar, .bottom-nav, .fab, .no-print { display: none !important; }
-            .page { display: none !important; }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#5b4fcf">
+<title>NC判责标准</title>
+<style>
+:root{--primary:#5b4fcf;--primary-light:#818cf8;--bg:#f5f5f5;--card:#ffffff;--text-p:#1a1a1a;--text-s:#757575;--text-h:#bdbdbd;--divider:#e0e0e0;--success:#43a047;--success-bg:#e8f5e9;--warning:#f9a825;--warning-bg:#fff8e1;--error:#e53935;--error-bg:#ffebee;--info-bg:#e3f2fd;--safe-top:env(safe-area-inset-top,20px);--safe-bottom:env(safe-area-inset-bottom,0px);--nav-h:64px;--shadow:0 2px 8px rgba(0,0,0,.04);--r-lg:16px;--r-md:12px;--r-sm:8px}
+@media(prefers-color-scheme:dark){:root{--bg:#121212;--card:#1e1e1e;--text-p:#e0e0e0;--text-s:#9e9e9e;--text-h:#616161;--divider:#333;--success-bg:#1b3a1e;--warning-bg:#3a2f0e;--error-bg:#3a1212;--info-bg:#1a2340;--shadow:0 2px 8px rgba(0,0,0,.2)}}
+.dark-mode{--bg:#121212;--card:#1e1e1e;--text-p:#e0e0e0;--text-s:#9e9e9e;--text-h:#616161;--divider:#333;--success-bg:#1b3a1e;--warning-bg:#3a2f0e;--error-bg:#3a1212;--info-bg:#1a2340;--shadow:0 2px 8px rgba(0,0,0,.2)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text-p);height:100%;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+.status-bar{height:44px;padding-top:var(--safe-top);background:var(--card);display:flex;align-items:center;justify-content:space-between;padding-left:16px;padding-right:16px;font-size:12px;color:var(--text-s);border-bottom:.5px solid var(--divider);flex-shrink:0;z-index:100}
+.status-left{display:flex;align-items:center;gap:4px}
+.status-right{display:flex;align-items:center;gap:6px}
+.battery{width:22px;height:11px;border:1.5px solid var(--text-s);border-radius:2px;position:relative}
+.battery::after{content:'';position:absolute;right:-4px;top:2.5px;width:2px;height:4px;background:var(--text-s);border-radius:0 1px 1px 0}
+.battery-level{height:100%;width:70%;background:var(--success);border-radius:1px}
+.nav-bar{height:52px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:.5px solid var(--divider);flex-shrink:0;z-index:100}
+.nav-back{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:var(--r-sm)}
+.nav-back:active{background:var(--bg)}
+.nav-title{font-size:17px;font-weight:600;position:absolute;left:50%;transform:translateX(-50%)}
+.nav-right{display:flex;align-items:center;gap:2px}
+.nav-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:none;font-size:18px;cursor:pointer;border-radius:var(--r-sm);color:var(--text-p)}
+.nav-btn:active{background:var(--bg)}
+.main-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px)}
+.page{display:none;padding:16px;min-height:100%}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.hero-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:20px;padding:28px 20px;margin-bottom:20px;color:white;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero-card::after{content:'';position:absolute;right:30px;bottom:-15px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)}
+.hero-emoji{font-size:44px;margin-bottom:12px;display:block}
+.hero-title{font-size:24px;font-weight:700;margin-bottom:6px}
+.hero-sub{font-size:14px;opacity:.9}
+.hero-version{display:inline-block;margin-top:12px;padding:4px 12px;border-radius:12px;background:rgba(255,255,255,.2);font-size:12px}
+.hero-stats{display:flex;gap:20px;margin-top:16px}
+.hero-stat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.hero-stat-num{font-size:22px;font-weight:800}
+.hero-stat-label{font-size:11px;opacity:.8}
+.section-title{font-size:13px;font-weight:600;color:var(--text-s);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 12px;padding-left:4px;display:flex;align-items:center;justify-content:space-between}
+.section-title .see-all{font-size:12px;color:var(--primary);cursor:pointer;text-transform:none;letter-spacing:normal}
+.card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid-card{background:var(--card);border-radius:var(--r-lg);padding:20px 16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.grid-card:active{transform:scale(.97);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text-s);line-height:1.3}
+.card-badge{position:absolute;top:10px;right:10px;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.badge-new{background:#fff3e0;color:#e65100}
+.c-blue .card-icon{background:linear-gradient(135deg,#e8eaf6,#c5cae9)}
+.c-orange .card-icon{background:linear-gradient(135deg,#fff3e0,#ffe0b2)}
+.c-green .card-icon{background:linear-gradient(135deg,#e8f5e9,#c8e6c9)}
+.c-pink .card-icon{background:linear-gradient(135deg,#fce4ec,#f8bbd0)}
+.c-red .card-icon{background:linear-gradient(135deg,#ffebee,#ffcdd2)}
+.c-indigo .card-icon{background:linear-gradient(135deg,#e8eaf6,#c5cae9)}
+.c-purple .card-icon{background:linear-gradient(135deg,#f3e5f5,#e1bee7)}
+.c-teal .card-icon{background:linear-gradient(135deg,#e0f2f1,#b2dfdb)}
+.c-amber .card-icon{background:linear-gradient(135deg,#fff8e1,#ffecb3)}
+.quick-entry{background:var(--card);border-radius:var(--r-lg);padding:16px;margin-bottom:20px;box-shadow:var(--shadow)}
+.quick-entry-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.quick-tags{display:flex;flex-wrap:wrap;gap:8px}
+.quick-tag{padding:8px 14px;border-radius:20px;font-size:13px;background:var(--bg);color:var(--text-p);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:4px;min-height:44px}
+.quick-tag:active{background:var(--primary);color:white;transform:scale(.96)}
+.quick-tag .qt-icon{font-size:15px}
+.detail-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:16px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.detail-icon{font-size:36px}
+.detail-info{flex:1}
+.detail-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.detail-sub{font-size:13px;color:var(--text-s)}
+.rule-card{background:var(--card);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);position:relative}
+.rule-num{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:700;margin-bottom:10px;background:rgba(91,79,207,.1);color:var(--primary)}
+.rule-title{font-size:15px;font-weight:600;margin-bottom:10px}
+.fav-btn{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all .2s}
+.fav-btn:active{transform:scale(.9)}
+.fav-btn.faved{color:#f9a825}
+.info-box{padding:10px 12px;border-radius:10px;margin:6px 0;font-size:13px;line-height:1.6;display:flex;align-items:flex-start;gap:8px}
+.info-box .ib-icon{flex-shrink:0;font-size:14px;margin-top:1px}
+.info-box .ib-text{flex:1}
+.ib-danger{background:var(--error-bg);border-left:3px solid var(--error);color:#c62828}
+.ib-warning{background:var(--warning-bg);border-left:3px solid var(--warning);color:#e65100}
+.ib-success{background:var(--success-bg);border-left:3px solid var(--success);color:#2e7d32}
+.ib-info{background:var(--info-bg);border-left:3px solid var(--primary);color:#283593}
+.dark-mode .ib-danger{color:#ff8a80}
+.dark-mode .ib-warning{color:#ffd54f}
+.dark-mode .ib-success{color:#a5d6a7}
+.dark-mode .ib-info{color:#90caf9}
+.related-rules{margin-top:10px;padding-top:10px;border-top:1px dashed var(--divider)}
+.related-title{font-size:11px;color:var(--text-h);margin-bottom:6px}
+.related-tag{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;background:var(--bg);color:var(--primary);margin:2px 4px 2px 0;cursor:pointer}
+.related-tag:active{background:var(--primary);color:white}
+.data-table{width:100%;border-collapse:separate;border-spacing:0;margin:10px 0;font-size:13px;border:1px solid var(--divider);border-radius:10px;overflow:hidden}
+.data-table th{background:var(--primary);color:white;padding:10px 12px;text-align:left;font-weight:600}
+.data-table td{padding:9px 12px;border-bottom:.5px solid var(--divider)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:nth-child(even){background:var(--bg)}
+.text-danger{color:var(--error);font-weight:600}
+.text-warning{color:#e65100;font-weight:600}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:var(--r-md);padding:10px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.search-bar input{flex:1;border:none;outline:none;font-size:15px;font-family:inherit;background:transparent;color:var(--text-p)}
+.search-bar input::placeholder{color:var(--text-h)}
+.search-icon{color:var(--text-h)}
+.search-clear{display:none;background:none;border:none;font-size:20px;color:var(--text-h);cursor:pointer;padding:0 4px;line-height:1;min-width:44px;min-height:44px;text-align:center}
+.search-clear.show{display:block}
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-tag{padding:6px 14px;border-radius:20px;font-size:13px;background:var(--card);color:var(--text-s);border:1px solid var(--divider);cursor:pointer;white-space:nowrap;transition:all .2s;min-height:36px;display:flex;align-items:center;gap:4px}
+.filter-tag.active{background:var(--primary);color:white;border-color:var(--primary)}
+.filter-tag:active{transform:scale(.96)}
+.search-suggestions{display:none;margin-bottom:12px;padding:12px 16px;background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow)}
+.search-suggestions.show{display:block}
+.suggestion-title{font-size:12px;color:var(--text-s);margin-bottom:8px}
+.suggestion-tags{display:flex;flex-wrap:wrap;gap:8px}
+.suggestion-tags .tag{padding:8px 14px;background:var(--bg);border-radius:16px;font-size:13px;color:var(--text-p);cursor:pointer;transition:all .2s;min-height:44px;display:flex;align-items:center}
+.suggestion-tags .tag:active{background:var(--primary);color:white}
+.search-history{margin-bottom:12px;padding:12px 16px;background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow)}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.history-title{font-size:12px;color:var(--text-s)}
+.history-clear-btn{font-size:12px;color:var(--error);cursor:pointer;min-height:44px;display:flex;align-items:center}
+.history-tags{display:flex;flex-wrap:wrap;gap:8px}
+.history-tag{padding:6px 12px;background:var(--bg);border-radius:14px;font-size:13px;color:var(--text-s);cursor:pointer;display:flex;align-items:center;gap:4px;min-height:40px}
+.search-result{background:var(--card);border-radius:var(--r-md);padding:14px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:background .15s}
+.search-result:active{background:var(--bg)}
+.search-result .rule-num{margin-bottom:6px}
+.search-result .rule-title{font-size:14px}
+.search-result .result-preview{font-size:12px;color:var(--text-s);margin-top:6px;line-height:1.5}
+.search-result .result-preview .hl{background:#FEF3C7;color:#92400E;padding:1px 2px;border-radius:2px;font-weight:600}
+.dark-mode .search-result .result-preview .hl{background:#5d4e14;color:#ffd54f}
+.result-count{font-size:12px;color:var(--text-s);margin-bottom:12px;padding:0 4px}
+.tree-container{padding:0 0 20px}
+.tree-step{background:var(--card);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.tree-question{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.tree-question .tq-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.tree-options{display:flex;flex-direction:column;gap:8px}
+.tree-option{padding:12px 14px;border-radius:var(--r-md);background:var(--bg);font-size:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;min-height:48px}
+.tree-option:active{background:var(--primary);color:white;transform:scale(.98)}
+.tree-option .to-arrow{margin-left:auto;color:var(--text-h)}
+.tree-result{background:var(--card);border-radius:var(--r-lg);padding:20px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.tree-result-title{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--primary)}
+.tree-result-person{font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.tree-result-desc{font-size:13px;color:var(--text-s);margin-top:8px}
+.tree-back{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:var(--r-md);background:var(--bg);font-size:14px;color:var(--primary);cursor:pointer;font-weight:600;margin-top:8px;min-height:44px}
+.tree-back:active{background:var(--primary);color:white}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid var(--divider);display:flex;align-items:stretch;padding-bottom:var(--safe-bottom);z-index:1000}
+.dark-mode .bottom-nav{background:rgba(30,30,30,.95)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text-h);transition:color .2s;position:relative;min-height:44px}
+.nav-item.active{color:var(--primary)}
+.nav-item .ni-icon{font-size:22px;line-height:1}
+.nav-item .ni-label{font-size:10px;font-weight:500}
+.nav-item.active .ni-icon{animation:navBounce .3s ease}
+@keyframes navBounce{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.nav-item .ni-badge{position:absolute;top:4px;right:calc(50% - 18px);min-width:16px;height:16px;border-radius:8px;background:var(--error);color:white;font-size:9px;display:none;align-items:center;justify-content:center;padding:0 4px;font-weight:700}
+.nav-item .ni-badge.show{display:flex}
+.fab{position:fixed;right:20px;bottom:calc(var(--nav-h) + var(--safe-bottom) + 20px);width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(102,126,234,.4);cursor:pointer;z-index:999;transition:transform .2s}
+.fab:active{transform:scale(.9)}
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 80px);left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);color:var(--text-p);padding:12px 20px;border-radius:var(--r-md);font-size:14px;z-index:2000;box-shadow:0 8px 24px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-h)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-text{font-size:15px}
+.main-content::-webkit-scrollbar{width:0}
+@media(min-width:500px){.card-grid{grid-template-columns:repeat(3,1fr)}}
+@media print{body *{visibility:hidden}#printArea,#printArea *{visibility:visible}#printArea{position:absolute;left:0;top:0;width:100%}.nav-bar,.status-bar,.bottom-nav,.fab,.no-print{display:none!important}.page{display:none!important}}
 </style>
 </head>
 <body>
+<div class="status-bar"><div class="status-left"><span id="clock">9:41</span></div><div class="status-right"><span>📶</span><span>📡</span><div class="battery"><div class="battery-level"></div></div></div></div>
+<div class="nav-bar" id="navBar">
+<div class="nav-back" id="navBack" onclick="goBack()" style="display:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+<div class="nav-title" id="navTitle">NC判责标准</div>
+<div class="nav-right">
+<button class="nav-btn" onclick="toggleDarkMode()" id="darkBtn" title="深色模式">🌙</button>
+<button class="nav-btn" onclick="exportPDF()" title="导出PDF">📄</button>
+</div>
+</div>
+<div class="main-content" id="mainContent">
+<!-- 首页 -->
+<div class="page active" id="page-home">
+<div class="hero-card">
+<span class="hero-emoji">📋</span>
+<div class="hero-title">NC判责标准</div>
+<div class="hero-sub">物流操作责任认定规范</div>
+<span class="hero-version">V7.0 · 8章24条</span>
+<div class="hero-stats">
+<div class="hero-stat"><div class="hero-stat-num">8</div><div class="hero-stat-label">章节</div></div>
+<div class="hero-stat"><div class="hero-stat-num">24</div><div class="hero-stat-label">规则</div></div>
+<div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-label">新增</div></div>
+</div>
+</div>
+<div class="quick-entry">
+<div class="quick-entry-title">🔍 快速判责 — 发生什么了？</div>
+<div class="quick-tags">
+<span class="quick-tag" onclick="openDecisionTree('drop')"><span class="qt-icon">📦</span>掉货了</span>
+<span class="quick-tag" onclick="openDecisionTree('damage')"><span class="qt-icon">💥</span>破损了</span>
+<span class="quick-tag" onclick="openDecisionTree('wrong')"><span class="qt-icon">🔄</span>分错了</span>
+<span class="quick-tag" onclick="openDecisionTree('delay')"><span class="qt-icon">⏰</span>延误了</span>
+<span class="quick-tag" onclick="openDecisionTree('wet')"><span class="qt-icon">💧</span>湿损了</span>
+</div>
+</div>
+<div class="section-title">全部章节</div>
+<div class="card-grid">
+<div class="grid-card c-blue" onclick="openChapter(1)"><div class="card-icon">📦</div><div class="card-title">搬运操作</div><div class="card-desc">第1-3条</div></div>
+<div class="grid-card c-orange" onclick="openChapter(2)"><div class="card-icon">⭐</div><div class="card-title">特殊订单</div><div class="card-desc">第4条</div></div>
+<div class="grid-card c-green" onclick="openChapter(3)"><div class="card-icon">🚚</div><div class="card-title">码放装载</div><div class="card-desc">第5-8条</div></div>
+<div class="grid-card c-pink" onclick="openChapter(4)"><div class="card-icon">🔄</div><div class="card-title">分拣交接</div><div class="card-desc">第9-11条</div></div>
+<div class="grid-card c-red" onclick="openChapter(5)"><div class="card-icon">🧹</div><div class="card-title">疏通与装载</div><div class="card-desc">第12-13条</div></div>
+<div class="grid-card c-indigo" onclick="openChapter(6)"><div class="card-icon">⚠️</div><div class="card-title">异常处理</div><div class="card-desc">第14-21条</div></div>
+<div class="grid-card c-purple" onclick="openChapter(7)"><div class="card-icon">🆕</div><div class="card-title">补充规范</div><div class="card-desc">第22-24条</div><div class="card-badge badge-new">NEW</div></div>
+<div class="grid-card c-teal" onclick="openChapter(8)"><div class="card-icon">📊</div><div class="card-title">速查表</div><div class="card-desc">快速查找</div></div>
+</div>
+</div>
+<!-- 章节详情页 -->
+<div class="page" id="page-detail"><div id="detailContent"></div></div>
+<!-- 搜索页 -->
+<div class="page" id="page-search">
+<div class="search-bar"><span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg></span><input type="text" id="searchInput" placeholder="搜索规则…" role="search" aria-label="搜索规则" oninput="doSearch(this.value)" onkeydown="handleSearchKey(event)"><button class="search-clear" id="searchClearBtn" onclick="clearSearch()">×</button></div>
+<div class="filter-bar" id="filterBar">
+<span class="filter-tag active" onclick="setFilter('all',this)">全部</span>
+<span class="filter-tag" onclick="setFilter('full',this)">🔴 全责</span>
+<span class="filter-tag" onclick="setFilter('shared',this)">🟠 共责</span>
+<span class="filter-tag" onclick="setFilter('new',this)">🆕 新增</span>
+</div>
+<div class="search-suggestions" id="searchSuggestions"><div class="suggestion-title">热门搜索</div><div class="suggestion-tags"><span class="tag" onclick="applySuggestion('暴力')">暴力操作</span><span class="tag" onclick="applySuggestion('掉货')">掉货</span><span class="tag" onclick="applySuggestion('破损')">破损</span><span class="tag" onclick="applySuggestion('干湿')">干湿分离</span><span class="tag" onclick="applySuggestion('轻薄')">轻薄件</span><span class="tag" onclick="applySuggestion('拦截')">拦截</span></div></div>
+<div id="searchHistoryArea"></div>
+<div id="searchResults"></div>
+</div>
+<!-- 收藏页 -->
+<div class="page" id="page-fav"><div id="favContent"></div></div>
+<!-- 决策树页 -->
+<div class="page" id="page-tree"><div id="treeContent"></div></div>
+</div>
+<div class="fab" onclick="scrollToTop()" title="回到顶部">⬆</div>
+<div class="toast" id="toast"></div>
+<div class="bottom-nav">
+<div class="nav-item active" onclick="switchTab('home',this)"><div class="ni-icon">🏠</div><div class="ni-label">首页</div></div>
+<div class="nav-item" onclick="switchTab('search',this)"><div class="ni-icon">🔍</div><div class="ni-label">搜索</div></div>
+<div class="nav-item" onclick="switchTab('fav',this)"><div class="ni-icon">⭐</div><div class="ni-label">收藏</div><div class="ni-badge" id="favBadge">0</div></div>
+<div class="nav-item" onclick="switchTab('tree',this)"><div class="ni-icon">🌳</div><div class="ni-label">判责</div></div>
+</div>
+<div id="printArea" style="display:none"></div>
+<script>
+// ===== 数据层：所有规则集中管理 =====
+var chapters={
+1:{icon:'📦',title:'第一章 · 搬运操作',sub:'第1-3条',rules:[
+{num:'第1条',title:'严禁暴力操作',tags:['full'],related:[2,3],items:[
+{type:'danger',icon:'✗',text:'严禁：踢货、坐货、踩货、抛货、扔货'},
+{type:'danger',icon:'✗',text:'严禁：直接在地上拖拽快递货物（距离标准：20cm）'},
+{type:'danger',icon:'✗',text:'严禁：集包袋直接拖地搬运（空袋除外）'},
+{type:'success',icon:'✓',text:'正确：使用托盘、笼车、周转框等容器搬运'},
+{type:'warning',icon:'⚠',text:'后果：被AI抓拍 → 面谈 + 承担所有异常关联责任'}]},
+{num:'第2条',title:'投货操作标准',tags:['full'],related:[3],items:[
+{type:'success',icon:'✓',text:'面单朝上依次投放，不能货物重叠'},
+{type:'warning',icon:'⚠',text:'未按标准导致丢失或延误 → 投货人员承担责任'}]},
+{num:'第3条',title:'破损拦截机制',tags:['full'],related:[1,14,15],items:[
+{type:'warning',icon:'⏰',text:'发现破损 → 及时拦截，1小时内拉至异常区报备'},
+{type:'danger',icon:'✗',text:'未拦截导致异常挂责 → 投货人员承担责任'}]}
+]},
+2:{icon:'⭐',title:'第二章 · 特殊订单',sub:'第4条',rules:[
+{num:'第4条',title:'京准达特安等特殊订单',tags:['full'],related:[10],items:[
+{type:'info',icon:'💡',text:'京准达=准时送达；特安=特殊安全保障'},
+{type:'success',icon:'✓',text:'第一时间及时交接至各条线，不允许滞留'},
+{type:'danger',icon:'⚠',text:'超时未交接导致延误 → 转货人员承担后续责任'}]}
+]},
+3:{icon:'🚚',title:'第三章 · 码放与装载',sub:'第5-8条',rules:[
+{num:'第5条',title:'码放三不原则',tags:['full'],related:[22],items:[
+{type:'success',icon:'1️⃣',text:'大不压小 — 大箱子不压在小箱子上'},
+{type:'success',icon:'2️⃣',text:'重不压轻 — 重货在下，轻货在上'},
+{type:'success',icon:'3️⃣',text:'长不压短 — 长条货放下面或侧面'},
+{type:'warning',icon:'🍷',text:'酒水类码放高度不能超过1.2米'},
+{type:'danger',icon:'⚠',text:'未按标准操作导致运输破损 → 码板人员承担责任'}]},
+{num:'第6条',title:'集包袋操作规范',tags:['full'],related:[1],items:[
+{type:'success',icon:'✓',text:'在监控下及时翻袋，确保没遗漏'},
+{type:'danger',icon:'✗',text:'未翻袋或不规范 → 需承担相应责任'}]},
+{num:'第7条',title:'人工T20拉货规范',tags:['full','shared'],related:[8],items:[
+{type:'info',icon:'💡',text:'拉货前绕货一圈评估掉落风险'},
+{type:'warning',icon:'⚠',text:'刚起步掉货 → 拣货人员全责'},
+{type:'warning',icon:'⚠',text:'途中掉货 → 车手+拣货 共责'},
+{type:'warning',icon:'⚠',text:'快到地方掉货 → 车手全责'}]},
+{num:'第8条',title:'无人T20操作规范',tags:['full','shared'],related:[7],items:[
+{type:'info',icon:'💡',text:'设置目的地需准确；驾驶前绕货一周评估风险'},
+{type:'warning',icon:'⚠',text:'起步掉货 → 码板人员全责'},
+{type:'warning',icon:'⚠',text:'途中/终点掉货 → 拣货人员与当班次所有人共责'},
+{type:'warning',icon:'⚠',text:'提醒3次以上仍掉货 → 码板人员全责'}]}
+]},
+4:{icon:'🔄',title:'第四章 · 分拣与交接',sub:'第9-11条',rules:[
+{num:'第9条',title:'错分责任追究',tags:['full','shared'],related:[11],items:[
+{type:'warning',icon:'⚠',text:'拣货人员错码托盘/拉货人员错拉 → 对应拣货人员承担责任'},
+{type:'danger',icon:'✗',text:'模组带错分滑槽 → 模组带全责（当班次所有人）'}]},
+{num:'第10条',title:'封车交接责任',tags:['full'],related:[4],items:[
+{type:'success',icon:'✓',text:'封车前十分钟内需单独交接给对应条线'},
+{type:'danger',icon:'⚠',text:'超时未交接 → 交接人员责任'}]},
+{num:'第11条',title:'滑槽清理责任',tags:['full'],related:[9,12],items:[
+{type:'success',icon:'✓',text:'模组带滑槽需要及时清理'},
+{type:'danger',icon:'⚠',text:'清理不及时导致落格撞击破损 → 抹货人员责任（人力不足除外）'}]}
+]},
+5:{icon:'🧹',title:'第五章 · 操作区疏通与货物装载',sub:'第12-13条',rules:[
+{num:'第12条',title:'堵货疏通',tags:['full'],related:[11,13],items:[
+{type:'success',icon:'✓',text:'回流及操作区出现堵货需及时疏通'},
+{type:'danger',icon:'⚠',text:'未及时清理导致异常 → 对应操作区域人员承担责任（人力不足除外）'}]},
+{num:'第13条',title:'入笼标准',tags:['full'],related:[5,12],items:[
+{type:'success',icon:'✓',text:'栋货入笼需进行货物码放，不允许随意入笼车'},
+{type:'danger',icon:'⚠',text:'未按标准操作导致异常发生破损 → 拣货人员承担责任'}]}
+]},
+6:{icon:'⚠️',title:'第六章 · 异常处理',sub:'第14-21条',rules:[
+{num:'第14条',title:'发货组回流破损处理',tags:['full'],related:[3,15],items:[
+{type:'success',icon:'✓',text:'不要乱拉，让他们自己拉过来并邮件报备'},
+{type:'success',icon:'✓',text:'所有拉至异常组的异常破损单需阐明地点、情况'}]},
+{num:'第15条',title:'人为破损责任',tags:['full'],related:[3,14],items:[
+{type:'success',icon:'✓',text:'自己人为造成的破损，自己主动承担'},
+{type:'danger',icon:'✗',text:'禁止混淆到回流或卸车拦截报备货物里面'},
+{type:'danger',icon:'⚠',text:'一经发现 → 责任人理赔全责 + 后续相关联所有异常'}]},
+{num:'第16条',title:'意外事故处理',tags:['shared'],related:[17],items:[
+{type:'warning',icon:'⚠',text:'不可抗力：地震、火灾、灯带掉落、被物体撞击、高笼框开门掉货等'},
+{type:'warning',icon:'⚠',text:'责任划分：责任人与当班次所有人共责'}]},
+{num:'第17条',title:'异常报备规范',tags:['full'],related:[16,18],items:[
+{type:'success',icon:'✓',text:'严格按照判责规定7.0报备修复下发，保证准确性'},
+{type:'danger',icon:'✗',text:'报备不规范 → 谁报备的谁承担责任'}]},
+{num:'第18条',title:'异常破损订单处理',tags:['full'],related:[17,19],items:[
+{type:'success',icon:'✓',text:'当波次无法下发，需验货滞留登记台账'},
+{type:'warning',icon:'⏰',text:'无客观原因，不允许超过24H'}]},
+{num:'第19条',title:'异常前置处理',tags:['full'],related:[18,20],items:[
+{type:'success',icon:'✓',text:'及时前置处理丢破损，联系客户及商家把损失降到最低'},
+{type:'danger',icon:'✗',text:'不允许出现连续多次买赔'},
+{type:'warning',icon:'⚠',text:'高值物品必须联系至少两方，电话通话三个以上'}]},
+{num:'第20条',title:'三无上报规范',tags:['full'],related:[19,21],items:[
+{type:'success',icon:'✓',text:'同位置单号需上报准确，多检查三无，确认无误再上报'},
+{type:'danger',icon:'⚠',text:'未按要求检查导致丢损延误 → 上报人员责任'}]},
+{num:'第21条',title:'异常判责举证',tags:['full'],related:[17,20],items:[
+{type:'success',icon:'✓',text:'异常判责举证由异常员自行处理闭环'}]}
+]},
+7:{icon:'🆕',title:'第七章 · 补充操作规范',sub:'第22-24条 · 新增',rules:[
+{num:'第22条',title:'干湿分离原则',tags:['full','new'],related:[5,6],items:[
+{type:'warning',icon:'⚠',text:'重要：无论是特快还是普货，即便是破损异常货物，都需按干湿分离原则码放'},
+{type:'info',icon:'💡',text:'防止液体泄漏污染其他货物，造成二次损失'},
+{type:'danger',icon:'✗',text:'不遵守者承担后续相关联所有异常'}]},
+{num:'第23条',title:'轻薄件处理',tags:['full','new'],related:[7,8],items:[
+{type:'success',icon:'✓',text:'及时收回流，临近节点拣货人员和车手相互提醒'},
+{type:'success',icon:'✓',text:'及时送至对应条线'},
+{type:'danger',icon:'⚠',text:'未及时拉 → 车手责任'},
+{type:'danger',icon:'⚠',text:'已提醒但未执行 → 对应拣货人员责任'}]},
+{num:'第24条',title:'模组带拦截标准',tags:['full','new'],related:[9,11],items:[
+{type:'warning',icon:'⚠',text:'必须拦截：超长超宽、柱状/桶装、编织袋/防水袋打包、玻璃制品、破损货物'},
+{type:'danger',icon:'✗',text:'多次不按标准拦截 → 责任定责至个人'}]}
+]},
+8:{icon:'📊',title:'第八章 · 速查表',sub:'快速查找责任归属',table:[
+{scene:'人工T20起步掉货',duty:'全责',person:'拣货人员'},
+{scene:'人工T20途中掉货',duty:'共责',person:'车手、拣货'},
+{scene:'人工T20终点掉货',duty:'全责',person:'车手'},
+{scene:'无人T20起步掉货',duty:'全责',person:'码板人员'},
+{scene:'无人T20途中/终点掉货',duty:'共责',person:'拣货人员和当班次其他人共责'},
+{scene:'提醒3次以上仍掉货',duty:'全责',person:'码板人员'},
+{scene:'意外事故/不可抗力',duty:'共责',person:'当班次所有人'},
+{scene:'暴力操作',duty:'全责',person:'操作人员'},
+{scene:'码放不合规导致破损',duty:'全责',person:'码板人员'},
+{scene:'投货未按标准',duty:'全责',person:'投货人员'},
+{scene:'特殊订单超时',duty:'全责',person:'转货人员'},
+{scene:'封车超时未交接',duty:'全责',person:'交接人员'},
+{scene:'滑槽清理不及时',duty:'全责',person:'抹货人员'},
+{scene:'堵货未疏通',duty:'全责',person:'操作区人员'},
+{scene:'入笼不规范',duty:'全责',person:'拣货人员'},
+{scene:'人为破损隐瞒',duty:'全责',person:'责任人'},
+{scene:'报备不规范',duty:'全责',person:'报备人'},
+{scene:'干湿未分离',duty:'全责',person:'操作人员'},
+{scene:'轻薄件未及时拉',duty:'全责',person:'车手'},
+{scene:'拦截不按标准',duty:'全责',person:'操作人员'}
+]
+}
+};
 
-    <!-- 状态栏 -->
-    <div class="status-bar">
-        <div class="status-left">
-            <span id="clock">9:41</span>
-        </div>
-        <div class="status-right">
-            <span>📶</span><span>📡</span>
-            <div class="battery"><div class="battery-level"></div></div>
-        </div>
-    </div>
+// ===== 收藏功能（localStorage持久化）=====
+var favKey='nc_favs';
+function getFavs(){try{return JSON.parse(localStorage.getItem(favKey)||'[]')}catch(e){return[]}}
+function saveFavs(f){localStorage.setItem(favKey,JSON.stringify(f))}
+function isFaved(ruleNum){return getFavs().indexOf(ruleNum)!==-1}
+function toggleFav(ruleNum){
+    var f=getFavs(),idx=f.indexOf(ruleNum);
+    if(idx===-1){f.push(ruleNum);showToast('已收藏 第'+ruleNum)}
+    else{f.splice(idx,1);showToast('已取消收藏')}
+    saveFavs(f);updateFavBadge();renderFavPage()
+}
+function updateFavBadge(){
+    var b=document.getElementById('favBadge'),c=getFavs().length;
+    b.textContent=c;b.classList.toggle('show',c>0)
+}
 
-    <!-- 导航栏 -->
-    <div class="nav-bar" id="navBar">
-        <div class="nav-back" id="navBack" onclick="goBack()" style="display:none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </div>
-        <div class="nav-title" id="navTitle">NC判责标准</div>
-        <div class="nav-right"><button onclick="exportPDF()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:4px;" title="导出PDF">📄</button></div>
-    </div>
+// ===== 搜索历史（localStorage持久化）=====
+var histKey='nc_search_hist';
+function getHist(){try{return JSON.parse(localStorage.getItem(histKey)||'[]')}catch(e){return[]}}
+function saveHist(h){localStorage.setItem(histKey,JSON.stringify(h))}
+function addHist(q){var h=getHist();q=q.trim();if(!q||q.length<2)return;h=h.filter(function(x){return x!==q});h.unshift(q);if(h.length>10)h.pop();saveHist(h)}
+function clearHist(){saveHist([]);renderSearchHistory()}
 
-    <!-- 主内容 -->
-    <div class="main-content" id="mainContent">
+// ===== 深色模式 =====
+var darkKey='nc_dark';
+function isDark(){return localStorage.getItem(darkKey)==='1'||(!localStorage.getItem(darkKey)&&window.matchMedia('(prefers-color-scheme:dark)').matches)}
+function toggleDarkMode(){
+    var d=!isDark();localStorage.setItem(darkKey,d?'1':'0');
+    document.body.classList.toggle('dark-mode',d);
+    document.getElementById('darkBtn').textContent=d?'☀️':'🌙';
+    document.querySelector('meta[name="theme-color"]').content=d?'#1e1e1e':'#5b4fcf'
+}
+if(isDark()){document.body.classList.add('dark-mode');document.addEventListener('DOMContentLoaded',function(){document.getElementById('darkBtn').textContent='☀️'})}
 
-        <!-- 首页 -->
-        <div class="page active" id="page-home">
-            <div class="hero-card">
-                <span class="hero-emoji">📋</span>
-                <div class="hero-title">NC判责标准</div>
-                <div class="hero-sub">物流操作责任认定规范</div>
-                <span class="hero-version">V1.0 · 8章24条</span>
-            </div>
+// ===== Toast =====
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
 
-            <div class="section-title">全部章节</div>
-            <div class="card-grid">
-                <div class="grid-card c-blue" onclick="openChapter(1)">
-                    <div class="card-icon">📦</div>
-                    <div class="card-title">搬运操作</div>
-                    <div class="card-desc">第1-3条</div>
-                </div>
-                <div class="grid-card c-orange" onclick="openChapter(2)">
-                    <div class="card-icon">⭐</div>
-                    <div class="card-title">特殊订单</div>
-                    <div class="card-desc">第4条</div>
-                </div>
-                <div class="grid-card c-green" onclick="openChapter(3)">
-                    <div class="card-icon">🚚</div>
-                    <div class="card-title">码放装载</div>
-                    <div class="card-desc">第5-8条</div>
-                </div>
-                <div class="grid-card c-pink" onclick="openChapter(4)">
-                    <div class="card-icon">🔄</div>
-                    <div class="card-title">分拣交接</div>
-                    <div class="card-desc">第9-11条</div>
-                </div>
-                <div class="grid-card c-red" onclick="openChapter(5)">
-                    <div class="card-icon">🧹</div>
-                    <div class="card-title">操作区疏通与货物装载</div>
-                    <div class="card-desc">第12-13条</div>
-                </div>
-                <div class="grid-card c-indigo" onclick="openChapter(6)">
-                    <div class="card-icon">⚠️</div>
-                    <div class="card-title">异常处理</div>
-                    <div class="card-desc">第14-21条</div>
-                </div>
-                <div class="grid-card c-purple" onclick="openChapter(7)">
-                    <div class="card-icon">🆕</div>
-                    <div class="card-title">补充操作规范</div>
-                    <div class="card-desc">第22-24条</div>
-                    <div class="card-badge badge-new">NEW</div>
-                </div>
-                <div class="grid-card c-teal" onclick="openChapter(8)">
-                    <div class="card-icon">📊</div>
-                    <div class="card-title">速查表</div>
-                    <div class="card-desc">快速查找</div>
-                </div>
-            </div>
-        </div>
+// ===== 时钟 =====
+function updateClock(){var d=new Date(),h=d.getHours(),m=d.getMinutes();document.getElementById('clock').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m}
+updateClock();setInterval(updateClock,30000);
 
-        <!-- 章节详情页 -->
-        <div class="page" id="page-detail">
-            <div id="detailContent"></div>
-        </div>
+// ===== 页面切换 =====
+var currentTab='home';
+function switchTab(page,el){
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    var pid=page==='fav'?'page-fav':page==='tree'?'page-tree':'page-'+page;
+    document.getElementById(pid).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+    if(el)el.classList.add('active');
+    document.getElementById('navBack').style.display='none';
+    document.getElementById('navTitle').textContent=page==='home'?'NC判责标准':page==='search'?'搜索':page==='fav'?'我的收藏':'快速判责';
+    currentTab=page;
+    if(page==='fav')renderFavPage();
+    if(page==='search')renderSearchHistory();
+    if(page==='tree')renderTreeHome();
+    document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})
+}
+function openChapter(n){
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.getElementById('page-detail').classList.add('active');
+    document.getElementById('navBack').style.display='flex';
+    renderChapter(n)
+}
+function goBack(){
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.getElementById('page-home').classList.add('active');
+    document.getElementById('navBack').style.display='none';
+    document.getElementById('navTitle').textContent='NC判责标准'
+}
 
-        <!-- 搜索页 -->
-        <div class="page" id="page-search">
-            <div class="search-bar">
-                <span class="search-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-                </span>
-                <input type="text" id="searchInput" placeholder="搜索规则…" oninput="doSearch(this.value)" onkeydown="handleSearchKeydown(event)">
-                <button class="search-clear" id="searchClearBtn" onclick="clearSearch()">×</button>
-            </div>
-            <div class="search-suggestions" id="searchSuggestions">
-                <div class="suggestion-title">热门搜索</div>
-                <div class="suggestion-tags">
-                    <span class="tag" onclick="applySuggestion('暴力')">暴力操作</span>
-                    <span class="tag" onclick="applySuggestion('掉货')">掉货</span>
-                    <span class="tag" onclick="applySuggestion('破损')">破损</span>
-                    <span class="tag" onclick="applySuggestion('干湿')">干湿分离</span>
-                    <span class="tag" onclick="applySuggestion('轻薄')">轻薄件</span>
-                    <span class="tag" onclick="applySuggestion('拦截')">拦截</span>
-                </div>
-            </div>
-            <div id="searchResults"></div>
-        </div>
-
-    </div>
-
-    <!-- 浮动按钮 -->
-    <div class="fab" onclick="scrollToTop()" title="回到顶部">⬆</div>
-
-    <!-- 底部导航 -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('home',this)">
-            <div class="ni-icon">🏠</div>
-            <div class="ni-label">首页</div>
-        </div>
-        <div class="nav-item" onclick="switchTab('search',this)">
-            <div class="ni-icon">🔍</div>
-            <div class="ni-label">搜索</div>
-        </div>
-        <div class="nav-item" onclick="showFavorites()">
-            <div class="ni-icon">⭐</div>
-            <div class="ni-label">收藏</div>
-        </div>
-        <div class="nav-item" onclick="showProfile()">
-            <div class="ni-icon">👤</div>
-            <div class="ni-label">我的</div>
-        </div>
-    </div>
-
-    <script>
-        // 时钟
-        function updateClock(){var d=new Date();var h=d.getHours(),m=d.getMinutes();document.getElementById('clock').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m}updateClock();setInterval(updateClock,30000);
-
-        // 页面切换
-        function switchTab(page, el){
-            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
-            document.getElementById('page-'+page).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
-            if(el) el.classList.add('active');
-            if(page==='home'){document.getElementById('navBack').style.display='none';document.getElementById('navTitle').textContent='NC判责标准'}
-        }
-
-        // 打开章节
-        function openChapter(n){
-            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
-            document.getElementById('page-detail').classList.add('active');
-            document.getElementById('navBack').style.display='flex';
-            renderChapter(n);
-        }
-
-        function goBack(){
-            document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
-            document.getElementById('page-home').classList.add('active');
-            document.getElementById('navBack').style.display='none';
-            document.getElementById('navTitle').textContent='NC判责标准';
-        }
-
-        // 渲染章节内容
-        var chapters = {
-            1: {
-                icon:'📦', title:'第一章 · 搬运操作', sub:'第1-3条',
-                rules:[
-                    {num:'第1条', title:'严禁暴力操作', items:[
-                        {type:'danger', text:'严禁：踢货、坐货、踩货、抛货、扔货'},
-                        {type:'danger', text:'严禁：直接在地上拖拽快递货物（距离标准：20cm）'},
-                        {type:'danger', text:'严禁：集包袋直接拖地搬运（空袋除外）'},
-                        {type:'success', text:'正确：使用托盘、笼车、周转框等容器搬运'},
-                        {type:'warning', text:'后果：被AI抓拍 → 面谈 + 承担所有异常关联责任'}
-                    ]},
-                    {num:'第2条', title:'投货操作标准', items:[
-                        {type:'success', text:'面单朝上依次投放，不能货物重叠'},
-                        {type:'warning', text:'未按标准导致丢失或延误 → 投货人员承担责任'}
-                    ]},
-                    {num:'第3条', title:'破损拦截机制', items:[
-                        {type:'warning', text:'发现破损 → 及时拦截，1小时内拉至异常区报备'},
-                        {type:'danger', text:'未拦截导致异常挂责 → 投货人员承担责任'}
-                    ]}
-                ]
-            },
-            2: {
-                icon:'⭐', title:'第二章 · 特殊订单', sub:'第4条',
-                rules:[
-                    {num:'第4条', title:'京准达特安等特殊订单', items:[
-                        {type:'info', text:'京准达=准时送达；特安=特殊安全保障'},
-                        {type:'success', text:'第一时间及时交接至各条线，不允许滞留'},
-                        {type:'danger', text:'超时未交接导致延误 → 转货人员承担后续责任'}
-                    ]}
-                ]
-            },
-            3: {
-                icon:'🚚', title:'第三章 · 码放与装载', sub:'第5-8条',
-                rules:[
-                    {num:'第5条', title:'码放三不原则', items:[
-                        {type:'success', text:'1️⃣ 大不压小 — 大箱子不压在小箱子上'},
-                        {type:'success', text:'2️⃣ 重不压轻 — 重货在下，轻货在上'},
-                        {type:'success', text:'3️⃣ 长不压短 — 长条货放下面或侧面'},
-                        {type:'warning', text:'🍷 酒水类码放高度不能超过1.2米'},
-                        {type:'danger', text:'未按标准操作导致运输破损 → 码板人员承担责任'}
-                    ]},
-                    {num:'第6条', title:'集包袋操作规范', items:[
-                        {type:'success', text:'在监控下及时翻袋，确保没遗漏'},
-                        {type:'danger', text:'未翻袋或不规范 → 需承担相应责任'}
-                    ]},
-                    {num:'第7条', title:'人工T20拉货规范', items:[
-                        {type:'info', text:'拉货前绕货一圈评估掉落风险'},
-                        {type:'warning', text:'刚起步掉货 → 拣货人员全责'},
-                        {type:'warning', text:'途中掉货 → 车手+拣货 共责'},
-                        {type:'warning', text:'快到地方掉货 → 车手全责'}
-                    ]},
-                    {num:'第8条', title:'无人T20操作规范', items:[
-                        {type:'info', text:'设置目的地需准确；驾驶前绕货一周评估风险'},
-                        {type:'warning', text:'起步掉货 → 码板人员全责'},
-                        {type:'warning', text:'途中/终点掉货 → 拣货人员与当班次所有人共责'},
-                        {type:'warning', text:'提醒3次以上仍掉货 → 码板人员全责'}
-                    ]}
-                ]
-            },
-            4: {
-                icon:'🔄', title:'第四章 · 分拣与交接', sub:'第9-11条',
-                rules:[
-                    {num:'第9条', title:'错分责任追究', items:[
-                        {type:'warning', text:'拣货人员错码托盘/拉货人员错拉 → 对应拣货人员承担责任'},
-                        {type:'danger', text:'模组带错分滑槽 → 模组带全责（当班次所有人）'}
-                    ]},
-                    {num:'第10条', title:'封车交接责任', items:[
-                        {type:'success', text:'封车前十分钟内需单独交接给对应条线'},
-                        {type:'danger', text:'超时未交接 → 交接人员责任'}
-                    ]},
-                    {num:'第11条', title:'滑槽清理责任', items:[
-                        {type:'success', text:'模组带滑槽需要及时清理'},
-                        {type:'danger', text:'清理不及时导致落格撞击破损 → 抹货人员责任（人力不足除外）'}
-                    ]}
-                ]
-            },
-            5: {
-                icon:'🧹', title:'第五章 · 操作区疏通与货物装载', sub:'第12-13条',
-                rules:[
-                    {num:'第12条', title:'堵货疏通', items:[
-                        {type:'success', text:'回流及操作区出现堵货需及时疏通'},
-                        {type:'danger', text:'未及时清理导致异常 → 对应操作区域人员承担责任（人力不足除外）'}
-                    ]},
-                    {num:'第13条', title:'入笼标准', items:[
-                        {type:'success', text:'栋货入笼需进行货物码放，不允许随意入笼车'},
-                        {type:'danger', text:'未按标准操作导致异常发生破损 → 拣货人员承担责任'}
-                    ]}
-                ]
-            },
-            6: {
-                icon:'⚠️', title:'第六章 · 异常处理', sub:'第14-21条',
-                rules:[
-                    {num:'第14条', title:'发货组回流破损处理', items:[
-                        {type:'success', text:'不要乱拉，让他们自己拉过来并邮件报备'},
-                        {type:'success', text:'所有拉至异常组的异常破损单需阐明地点、情况'}
-                    ]},
-                    {num:'第15条', title:'人为破损责任', items:[
-                        {type:'success', text:'自己人为造成的破损，自己主动承担'},
-                        {type:'danger', text:'禁止混淆到回流或卸车拦截报备货物里面'},
-                        {type:'danger', text:'一经发现 → 责任人理赔全责 + 后续相关联所有异常'}
-                    ]},
-                    {num:'第16条', title:'意外事故处理', items:[
-                        {type:'warning', text:'不可抗力：地震、火灾、灯带掉落、被物体撞击、高笼框开门掉货等'},
-                        {type:'warning', text:'责任划分：责任人与当班次所有人共责'}
-                    ]},
-                    {num:'第17条', title:'异常报备规范', items:[
-                        {type:'success', text:'严格按照判责规定7.0报备修复下发，保证准确性'},
-                        {type:'danger', text:'报备不规范 → 谁报备的谁承担责任'}
-                    ]},
-                    {num:'第18条', title:'异常破损订单处理', items:[
-                        {type:'success', text:'当波次无法下发，需验货滞留登记台账'},
-                        {type:'warning', text:'无客观原因，不允许超过24H'}
-                    ]},
-                    {num:'第19条', title:'异常前置处理', items:[
-                        {type:'success', text:'及时前置处理丢破损，联系客户及商家把损失降到最低'},
-                        {type:'danger', text:'不允许出现连续多次买赔'},
-                        {type:'warning', text:'高值物品必须联系至少两方，电话通话三个以上'}
-                    ]},
-                    {num:'第20条', title:'三无上报规范', items:[
-                        {type:'success', text:'同位置单号需上报准确，多检查三无，确认无误再上报'},
-                        {type:'danger', text:'未按要求检查导致丢损延误 → 上报人员责任'}
-                    ]},
-                    {num:'第21条', title:'异常判责举证', items:[
-                        {type:'success', text:'异常判责举证由异常员自行处理闭环'}
-                    ]}
-                ]
-            },
-            7: {
-                icon:'🆕', title:'第七章 · 补充操作规范', sub:'第22-24条 · 新增',
-                rules:[
-                    {num:'第22条', title:'干湿分离原则', items:[
-                        {type:'warning', text:'重要：无论是特快还是普货，即便是破损异常货物，都需按干湿分离原则码放'},
-                        {type:'info', text:'防止液体泄漏污染其他货物，造成二次损失'},
-                        {type:'danger', text:'不遵守者承担后续相关联所有异常'}
-                    ]},
-                    {num:'第23条', title:'轻薄件处理', items:[
-                        {type:'success', text:'及时收回流，临近节点拣货人员和车手相互提醒'},
-                        {type:'success', text:'及时送至对应条线'},
-                        {type:'danger', text:'未及时拉 → 车手责任'},
-                        {type:'danger', text:'已提醒但未执行 → 对应拣货人员责任'}
-                    ]},
-                    {num:'第24条', title:'模组带拦截标准', items:[
-                        {type:'warning', text:'必须拦截：超长超宽、柱状/桶装、编织袋/防水袋打包、玻璃制品、破损货物'},
-                        {type:'danger', text:'多次不按标准拦截 → 责任定责至个人'}
-                    ]}
-                ]
-            },
-            8: {
-                icon:'📊', title:'第八章 · 速查表', sub:'快速查找责任归属',
-                table: [
-                    {scene:'人工T20起步掉货', duty:'全责', person:'拣货人员'},
-                    {scene:'人工T20途中掉货', duty:'共责', person:'车手、拣货'},
-                    {scene:'人工T20终点掉货', duty:'全责', person:'车手'},
-                    {scene:'无人T20起步掉货', duty:'全责', person:'码板人员'},
-                    {scene:'无人T20途中/终点掉货', duty:'共责', person:'拣货人员和当班次其他人共责'},
-                    {scene:'提醒3次以上仍掉货', duty:'全责', person:'码板人员'},
-                    {scene:'意外事故/不可抗力', duty:'共责', person:'当班次所有人'},
-                    {scene:'轻薄件未及时拉', duty:'全责', person:'车手'}
-                ]
-            }
-        };
-
-        function renderChapter(n){
-            var ch = chapters[n];
-            if(!ch) return;
-            document.getElementById('navTitle').textContent = ch.title.split('·')[0].trim();
-            var html = '<div class="detail-header"><div class="detail-icon">'+ch.icon+'</div><div class="detail-info"><div class="detail-title">'+ch.title+'</div><div class="detail-sub">'+ch.sub+'</div></div></div>';
-
-            if(ch.table){
-                html += '<div style="background:var(--card);border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);overflow-x:auto"><table class="data-table"><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
-                ch.table.forEach(function(r){html+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==='全责'?'text-danger':'text-warning')+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});
-                html += '</table></div>';
-            } else {
-                ch.rules.forEach(function(rule){
-                    html += '<div class="rule-card"><div class="rule-num">'+rule.num+'</div><div class="rule-title">'+rule.title+'</div>';
-                    rule.items.forEach(function(item){
-                        var cls = 'ib-' + item.type;
-                        html += '<div class="info-box '+cls+'">'+item.text+'</div>';
-                    });
-                    html += '</div>';
-                });
-            }
-            document.getElementById('detailContent').innerHTML = html;
-        }
-
-        // 搜索（优化版）
-        var searchHistory = [];
-        var currentSearchResults = []; // 存储当前搜索结果
-        var searchTimer = null; // 防抖计时器
-        
-        function doSearch(q){
-            q = q.trim().toLowerCase();
-            var container = document.getElementById('searchResults');
-            var clearBtn = document.getElementById('searchClearBtn');
-            var suggestions = document.getElementById('searchSuggestions');
-            
-            // 显示/隐藏清除按钮
-            if(q && clearBtn) clearBtn.classList.add('show');
-            else if(clearBtn) clearBtn.classList.remove('show');
-            
-            // 隐藏建议
-            if(suggestions) suggestions.classList.remove('show');
-            
-            if(!q){container.innerHTML=''; return;}
-            
-            // 防抖处理：延迟300ms执行搜索
-            if(searchTimer) clearTimeout(searchTimer);
-            searchTimer = setTimeout(function(){
-                performSearch(q, container);
-            }, 300);
-        }
-        
-        function performSearch(q, container){
-            var results = [];
-            Object.keys(chapters).forEach(function(key){
-                var ch = chapters[key];
-                if(ch.rules){
-                    ch.rules.forEach(function(rule){
-                        var ruleText = rule.num + ' ' + rule.title;
-                        rule.items.forEach(function(item){
-                            ruleText += ' ' + item.text;
-                        });
-                        if(ruleText.toLowerCase().indexOf(q)!==-1){
-                            results.push({key:key, ch:ch, rule:rule});
-                        }
-                    });
-                }
-                if(ch.table){
-                    ch.table.forEach(function(row){
-                        var rowText = row.scene + ' ' + row.duty + ' ' + row.person;
-                        if(rowText.toLowerCase().indexOf(q)!==-1){
-                            results.push({key:key, ch:ch, row:row});
-                        }
-                    });
-                }
+// ===== 渲染章节 =====
+function renderChapter(n){
+    var ch=chapters[n];if(!ch)return;
+    document.getElementById('navTitle').textContent=ch.title.split('·')[0].trim();
+    var html='<div class="detail-header"><div class="detail-icon">'+ch.icon+'</div><div class="detail-info"><div class="detail-title">'+ch.title+'</div><div class="detail-sub">'+ch.sub+'</div></div></div>';
+    if(ch.table){
+        html+='<div style="background:var(--card);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);overflow-x:auto"><table class="data-table"><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
+        ch.table.forEach(function(r){html+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==='全责'?'text-danger':'text-warning')+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});
+        html+='</table></div>'
+    }else{
+        ch.rules.forEach(function(rule){
+            var faved=isFaved(rule.num);
+            html+='<div class="rule-card"><button class="fav-btn'+(faved?' faved':'')+'" onclick="toggleFav(\''+rule.num+'\');this.classList.toggle(\'faved\')">'+(faved?'⭐':'☆')+'</button><div class="rule-num">📌 '+rule.num+'</div><div class="rule-title">'+rule.title+'</div>';
+            rule.items.forEach(function(item){
+                html+='<div class="info-box ib-'+item.type+'"><span class="ib-icon">'+item.icon+'</span><span class="ib-text">'+item.text+'</span></div>'
             });
-            
-            // 保存搜索结果
-            currentSearchResults = results;
-            
-            if(results.length===0){
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到相关内容</div><div class="empty-hint">试试其他关键词，如"暴力"、"掉货"</div></div>';
-                return;
+            if(rule.related&&rule.related.length>0){
+                html+='<div class="related-rules"><div class="related-title">🔗 相关规则</div>';
+                rule.related.forEach(function(rn){html+='<span class="related-tag" onclick="jumpToRule('+rn+')">第'+rn+'条</span>'});
+                html+='</div>'
             }
-            
-            // 显示结果数量
-            var resultCount = '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;padding:0 4px;">找到 '+results.length+' 个结果</div>';
-            
-            var html = resultCount;
-            results.forEach(function(r, idx){
-                var title = r.rule ? r.rule.num+' '+r.rule.title : (r.row ? r.row.scene : '');
-                // 高亮匹配文字
-                title = highlightText(title, q);
-                var chapterInfo = '<span style="font-size:12px;color:var(--text-secondary);">'+r.ch.icon+' '+r.ch.title+'</span>';
-                
-                html += '<div class="search-result" onclick="openSearchResult('+idx+')">'+
-                    '<div class="rule-num">'+chapterInfo+'</div>'+
-                    '<div class="rule-title">'+title+'</div>'+
-                '</div>';
-            });
-            container.innerHTML = html;
-            
-            // 保存到搜索历史
-            if(q.length > 1 && searchHistory.indexOf(q)===-1){
-                searchHistory.unshift(q);
-                if(searchHistory.length > 10) searchHistory.pop();
-            }
-        }
-        
-        // 高亮文字
-        function highlightText(text, keyword){
-            if(!keyword) return text;
-            var idx = text.toLowerCase().indexOf(keyword.toLowerCase());
-            if(idx === -1) return text;
-            return text.substring(0, idx) + '<span style="background:#FEF3C7;color:#92400E;padding:1px 2px;border-radius:2px;font-weight:600;">' + text.substring(idx, idx+keyword.length) + '</span>' + text.substring(idx+keyword.length);
-        }
-        
-        // 打开搜索结果
-        function openSearchResult(idx){
-            if(!currentSearchResults[idx]) return;
-            var result = currentSearchResults[idx];
-            if(result.key) openChapter(result.key);
-        }
-        
-        // 清除搜索
-        function clearSearch(){
-            var input = document.getElementById('searchInput');
-            if(input){
-                input.value = '';
-                doSearch('');
-                input.focus();
-            }
-        }
-        
-        // 应用搜索建议
-        function applySuggestion(text){
-            var input = document.getElementById('searchInput');
-            if(input){
-                input.value = text;
-                doSearch(text);
-            }
-        }
-        
-        // 搜索框键盘事件
-        function handleSearchKeydown(event){
-            if(event.key === 'Escape'){
-                clearSearch();
-            }
-        }
-        
-        // 显示搜索建议
-        document.addEventListener('DOMContentLoaded', function(){
-            var searchInput = document.getElementById('searchInput');
-            if(searchInput){
-                searchInput.addEventListener('focus', function(){
-                    if(this.value.trim() === ''){
-                        var suggestions = document.getElementById('searchSuggestions');
-                        if(suggestions) suggestions.classList.add('show');
-                    }
-                });
-                
-                searchInput.addEventListener('blur', function(){
-                    setTimeout(function(){
-                        var suggestions = document.getElementById('searchSuggestions');
-                        if(suggestions) suggestions.classList.remove('show');
-                    }, 200);
-                });
-            }
-        });
+            html+='</div>'
+        })
+    }
+    document.getElementById('detailContent').innerHTML=html
+}
 
-        // 收藏 & 我的（占位）
-        function showFavorites(){alert('收藏功能开发中');}
-        function showProfile(){alert('个人中心开发中');}
+function jumpToRule(n){
+    for(var k in chapters){var ch=chapters[k];if(ch.rules){for(var i=0;i<ch.rules.length;i++){if(ch.rules[i].num==='第'+n+'条'){openChapter(parseInt(k));return}}}}
+    showToast('未找到第'+n+'条')
+}
 
+// ===== 搜索功能（含拼音匹配、筛选、预览）=====
+var pinyinMap={'暴':'bao','力':'li','操':'cao','作':'zuo','踢':'ti','坐':'zuo','踩':'cai','抛':'pao','扔':'reng','甩':'shuai','拖':'tuo','货':'huo','掉':'diao','破':'po','损':'sun','拦':'lan','截':'jie','码':'ma','放':'fang','重':'zhong','轻':'qing','长':'chang','短':'duan','干':'gan','湿':'shi','分':'fen','离':'li','薄':'bao','集':'ji','包':'bao','袋':'dai','翻':'fan','笼':'long','车':'che','拣':'jian','错':'cuo','滑':'hua','槽':'cao','封':'feng','交':'jiao','接':'jie','堵':'du','疏':'shu','通':'tong','异':'yi','常':'chang','回':'hui','流':'liu','人':'ren','为':'wei','报':'bao','备':'bei','酒':'jiu','水':'shui','特':'te','安':'an','准':'zhun','达':'da','网':'wang','编':'bian','织':'zhi','桶':'tong','柱':'zhu','玻':'bo','璃':'li','防':'fang','水':'shui','丢':'diu','延':'yan','误':'wu','三':'san','无':'wu','上':'shang','台':'tai','前':'qian','置':'zhi','买':'mai','赔':'pei','高':'gao','值':'zhi','物':'wu','品':'pin','不可抗力':'bukangkangli','T20':'t20'};
+var currentFilter='all';
+var searchTimer=null;
 
-        // 导出PDF
-        function exportPDF(){
-            var printHtml = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 - PDF</title><style>';
-            printHtml += 'body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;color:#1a1a1a;line-height:1.6;max-width:800px;margin:0 auto;}';
-            printHtml += 'h1{text-align:center;font-size:24px;margin-bottom:8px;}';
-            printHtml += '.subtitle{text-align:center;color:#757575;margin-bottom:30px;}';
-            printHtml += 'h2{font-size:18px;padding:12px 0 8px;border-bottom:2px solid #5b4fcf;margin-top:24px;}';
-            printHtml += '.rule-num{display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(91,79,207,0.1);color:#5b4fcf;margin:12px 0 6px;}';
-            printHtml += '.rule-title{font-size:15px;font-weight:600;margin-bottom:8px;}';
-            printHtml += '.info-box{padding:10px 12px;border-radius:8px;margin:6px 0;font-size:13px;line-height:1.7;}';
-            printHtml += '.ib-danger{background:#ffebee;border-left:3px solid #e53935;color:#c62828;}';
-            printHtml += '.ib-warning{background:#fff8e1;border-left:3px solid #f9a825;color:#e65100;}';
-            printHtml += '.ib-success{background:#e8f5e9;border-left:3px solid #43a047;color:#2e7d32;}';
-            printHtml += '.ib-info{background:#e3f2fd;border-left:3px solid #5b4fcf;color:#283593;}';
-            printHtml += 'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;}';
-            printHtml += 'th{background:#5b4fcf;color:white;padding:10px 12px;text-align:left;}';
-            printHtml += 'td{padding:9px 12px;border-bottom:0.5px solid #e0e0e0;}';
-            printHtml += '.text-danger{color:#e53935;font-weight:600;}';
-            printHtml += '.text-warning{color:#e65100;font-weight:600;}';
-            printHtml += '.footer{text-align:center;margin-top:30px;font-size:12px;color:#bdbdbd;}';
-            printHtml += '</style></head><body>';
+function setFilter(f,el){
+    currentFilter=f;
+    document.querySelectorAll('.filter-tag').forEach(function(t){t.classList.remove('active')});
+    if(el)el.classList.add('active');
+    var q=document.getElementById('searchInput').value;
+    if(q)doSearch(q)
+}
 
-            printHtml += '<h1>📋 NC判责标准</h1>';
-            printHtml += '<div class="subtitle">物流操作责任认定规范 · V1.0 · 8章24条</div>';
+function doSearch(q){
+    q=q.trim();
+    var c=document.getElementById('searchResults'),cb=document.getElementById('searchClearBtn'),sg=document.getElementById('searchSuggestions');
+    if(q&&cb)cb.classList.add('show');else if(cb)cb.classList.remove('show');
+    if(sg)sg.classList.remove('show');
+    if(!q){c.innerHTML='';renderSearchHistory();return}
+    if(searchTimer)clearTimeout(searchTimer);
+    searchTimer=setTimeout(function(){performSearch(q,c)},200)
+}
 
-            Object.keys(chapters).forEach(function(key){
-                var ch = chapters[key];
-                printHtml += '<h2>'+ch.icon+' '+ch.title+'</h2>';
-                if(ch.table){
-                    printHtml += '<table><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
-                    ch.table.forEach(function(r){printHtml+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==="全责"?"text-danger":"text-warning")+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});
-                    printHtml += '</table>';
-                } else {
-                    ch.rules.forEach(function(rule){
-                        printHtml += '<div class="rule-num">'+rule.num+'</div>';
-                        printHtml += '<div class="rule-title">'+rule.title+'</div>';
-                        rule.items.forEach(function(item){
-                            printHtml += '<div class="info-box ib-'+item.type+'">'+item.text+'</div>';
-                        });
-                    });
+function matchPinyin(text,q){
+    var py=text.split('').map(function(c){return pinyinMap[c]||c}).join('');
+    return py.toLowerCase().indexOf(q.toLowerCase())!==-1
+}
+
+function performSearch(q,container){
+    var results=[];
+    var filterTags=currentFilter==='all'?null:currentFilter==='new'?['new']:currentFilter==='full'?['full']:currentFilter==='shared'?['shared']:null;
+    Object.keys(chapters).forEach(function(key){
+        var ch=chapters[key];
+        if(ch.rules){
+            ch.rules.forEach(function(rule){
+                if(filterTags){
+                    var hasTag=rule.tags&&rule.tags.some(function(t){return filterTags.indexOf(t)!==-1});
+                    if(!hasTag)return
                 }
-            });
-
-            printHtml += '<div class="footer">NC判责标准 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div>';
-            printHtml += '</body></html>';
-
-            var win = window.open('', '_blank');
-            win.document.write(printHtml);
-            win.document.close();
-            win.onload = function(){ win.print(); };
+                var ruleText=rule.num+' '+rule.title;
+                rule.items.forEach(function(item){ruleText+=' '+item.text});
+                if(ruleText.toLowerCase().indexOf(q.toLowerCase())!==-1||matchPinyin(ruleText,q)){
+                    var preview=rule.items.map(function(it){return it.text}).join('；');
+                    results.push({key:key,ch:ch,rule:rule,preview:preview})
+                }
+            })
         }
-        // 回到顶部
-        function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'});}
-    </script>
-    <!-- 打印区域（PDF导出用） -->
-    <div id="printArea" style="display:none;"></div>
+        if(ch.table){
+            ch.table.forEach(function(row){
+                var rowText=row.scene+' '+row.duty+' '+row.person;
+                if(rowText.toLowerCase().indexOf(q.toLowerCase())!==-1||matchPinyin(rowText,q)){
+                    results.push({key:key,ch:ch,row:row,preview:row.scene+' → '+row.duty+'：'+row.person})
+                }
+            })
+        }
+    });
+    addHist(q);
+    if(results.length===0){
+        container.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">未找到相关内容</div></div>';
+        return
+    }
+    var html='<div class="result-count">找到 '+results.length+' 个结果</div>';
+    results.forEach(function(r,i){
+        var title=r.rule?r.rule.num+' '+r.rule.title:(r.row?r.row.scene:'');
+        title=highlightText(title,q);
+        var preview=r.preview?highlightText(truncate(r.preview,60),q):'';
+        var chInfo='<span style="font-size:12px;color:var(--text-s)">'+r.ch.icon+' '+r.ch.title.split('·')[0].trim()+'</span>';
+        html+='<div class="search-result" onclick="openSearchResult('+r.key+')"><div class="rule-num">'+chInfo+'</div><div class="rule-title">'+title+'</div>'+(preview?'<div class="result-preview">'+preview+'</div>':'')+'</div>'
+    });
+    container.innerHTML=html
+}
+
+function highlightText(text,keyword){
+    if(!keyword)return text;
+    var idx=text.toLowerCase().indexOf(keyword.toLowerCase());
+    if(idx===-1)return text;
+    return text.substring(0,idx)+'<span class="hl">'+text.substring(idx,idx+keyword.length)+'</span>'+text.substring(idx+keyword.length)
+}
+function truncate(s,n){return s.length>n?s.substring(0,n)+'…':s}
+
+function openSearchResult(key){openChapter(parseInt(key))}
+function clearSearch(){var i=document.getElementById('searchInput');if(i){i.value='';doSearch('');i.focus()}}
+function applySuggestion(text){var i=document.getElementById('searchInput');if(i){i.value=text;doSearch(text)}}
+function handleSearchKey(e){if(e.key==='Escape')clearSearch()}
+
+// 搜索建议显示/隐藏
+document.addEventListener('DOMContentLoaded',function(){
+    var si=document.getElementById('searchInput');
+    if(si){
+        si.addEventListener('focus',function(){if(!this.value.trim()){var s=document.getElementById('searchSuggestions');if(s)s.classList.add('show');renderSearchHistory()}});
+        si.addEventListener('blur',function(){setTimeout(function(){var s=document.getElementById('searchSuggestions');if(s)s.classList.remove('show')},200)})
+    }
+});
+
+// 搜索历史渲染
+function renderSearchHistory(){
+    var h=getHist(),area=document.getElementById('searchHistoryArea');
+    if(!area||h.length===0){if(area)area.innerHTML='';return}
+    var html='<div class="search-history"><div class="history-header"><div class="history-title">🕐 搜索历史</div><span class="history-clear-btn" onclick="clearHist()">清除</span></div><div class="history-tags">';
+    h.forEach(function(q){html+='<span class="history-tag" onclick="applySuggestion(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</span>'});
+    html+='</div></div>';
+    area.innerHTML=html
+}
+
+// ===== 收藏页渲染 =====
+function renderFavPage(){
+    var favs=getFavs(),c=document.getElementById('favContent');
+    if(favs.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-text">还没有收藏</div><div style="font-size:13px;color:var(--text-h);margin-top:6px">在规则详情中点击 ☆ 收藏常用规则</div></div>';return}
+    var html='<div style="margin-bottom:16px;font-size:13px;color:var(--text-s)">已收藏 '+favs.length+' 条规则</div>';
+    favs.forEach(function(num){
+        for(var k in chapters){var ch=chapters[k];if(ch.rules){for(var i=0;i<ch.rules.length;i++){var r=ch.rules[i];if(r.num===num){
+            html+='<div class="search-result" onclick="openChapter('+k+')"><div class="rule-num">'+ch.icon+' '+ch.title.split('·')[0].trim()+'</div><div class="rule-title">第'+num+' '+r.title+'</div></div>'
+        }}}}
+    });
+    c.innerHTML=html
+}
+
+// ===== 决策树 =====
+var decisionTrees={
+    drop:{title:'📦 掉货判责决策树',steps:[
+        {q:'是哪种运输方式？',opts:[
+            {label:'🧑 人工T20',next:'human_t20'},
+            {label:'🤖 无人T20',next:'auto_t20'}
+        ]},
+        {id:'human_t20',q:'在哪里掉的？',opts:[
+            {label:'🚀 刚起步',result:{title:'拣货人员全责',person:'拣货人员',desc:'起步掉货说明码板不规范'}},
+            {label:'🛣️ 途中',result:{title:'车手+拣货共责',person:'车手、拣货人员',desc:'途中掉货双方均有责任'}},
+            {label:'🏁 快到地方',result:{title:'车手全责',person:'车手',desc:'到达附近掉货为驾驶操作问题'}}
+        ]},
+        {id:'auto_t20',q:'在哪里掉的？',opts:[
+            {label:'🚀 起步',result:{title:'码板人员全责',person:'码板人员',desc:'起步掉货说明码板不规范'}},
+            {label:'🛣️ 途中/终点',next:'auto_t20_mid'},
+            {label:'📢 已提醒3次以上',result:{title:'码板人员全责',person:'码板人员',desc:'多次提醒仍掉货，码板质量有问题'}}
+        ]},
+        {id:'auto_t20_mid',q:'之前是否有人提醒过？',opts:[
+            {label:'是，已提醒',result:{title:'对应拣货人员责任',person:'拣货人员',desc:'已提醒但未执行'}},
+            {label:'否，未提醒',result:{title:'拣货人员与当班次所有人共责',person:'拣货人员+当班次所有人',desc:'无人提醒则为集体责任'}}
+        ]}
+    ]},
+    damage:{title:'💥 破损判责决策树',steps:[
+        {q:'破损是怎么发生的？',opts:[
+            {label:'🧑 人为操作造成',next:'damage_human'},
+            {label:'📦 码放不合规',next:'damage_stack'},
+            {label:'💧 液体污染',next:'damage_wet'},
+            {label:'⚡ 不可抗力',result:{title:'共责',person:'责任人与当班次所有人共责',desc:'地震、火灾、灯带掉落、被物体撞击等不可抗力'}}
+        ]},
+        {id:'damage_human',q:'是否主动承认？',opts:[
+            {label:'✓ 是，主动承担',result:{title:'责任人自行承担',person:'操作人员',desc:'自己人为造成的破损，自己主动承担'}},
+            {label:'✗ 否，混淆到其他报备',result:{title:'全责+关联异常全责',person:'责任人',desc:'一经发现 → 理赔全责 + 后续相关联所有异常'}}
+        ]},
+        {id:'damage_stack',q:'具体什么码放问题？',opts:[
+            {label:'大压小/重压轻/长压短',result:{title:'码板人员全责',person:'码板人员',desc:'未遵守三不原则导致运输破损'}},
+            {label:'酒水超1.2米',result:{title:'码板人员全责',person:'码板人员',desc:'酒水类码放高度不能超过1.2米'}},
+            {label:'干湿未分离',result:{title:'操作人员全责+关联异常',person:'操作人员',desc:'不遵守干湿分离者承担后续相关联所有异常'}}
+        ]},
+        {id:'damage_wet',q:'干湿分离了吗？',opts:[
+            {label:'✗ 没有',result:{title:'操作人员全责+关联异常',person:'操作人员',desc:'不遵守干湿分离者承担后续相关联所有异常'}},
+            {label:'✓ 有，但仍污染',next:'damage_wet_yes'}
+        ]},
+        {id:'damage_wet_yes',q:'是否及时处理？',opts:[
+            {label:'✓ 及时拦截并1小时内报备',result:{title:'无责',person:'-',desc:'按规范拦截报备，无责任'}},
+            {label:'✗ 未拦截或超时',result:{title:'投货人员全责',person:'投货人员',desc:'发现破损未拦截导致异常挂责'}}
+        ]}
+    ]},
+    wrong:{title:'🔄 分错判责决策树',steps:[
+        {q:'什么环节分错了？',opts:[
+            {label:'📋 拣货人员错码托盘',result:{title:'对应拣货人员全责',person:'拣货人员',desc:'拣货人员错码托盘/拉货人员错拉'}},
+            {label:'🏭 模组带错分滑槽',result:{title:'模组带全责（当班次所有人）',person:'当班次所有人',desc:'模组带错分滑槽到条线导致延误/破损'}},
+            {label:'🔲 拦截不按标准',result:{title:'责任定责至个人',person:'拦截人员',desc:'多次不按标准拦截'}}
+        ]}
+    ]},
+    delay:{title:'⏰ 延误判责决策树',steps:[
+        {q:'延误原因是什么？',opts:[
+            {label:'⭐ 特殊订单超时',result:{title:'转货人员全责',person:'转货人员',desc:'超时未交接导致延误'}},
+            {label:'🚪 封车前未交接',result:{title:'交接人员全责',person:'交接人员',desc:'封车前十分钟内需单独交接'}},
+            {label:'🧹 堵货未疏通',result:{title:'操作区人员全责',person:'操作区人员',desc:'未及时清理导致异常（人力不足除外）'}},
+            {label:'📋 投货未按标准',result:{title:'投货人员全责',person:'投货人员',desc:'未按标准导致丢失或延误'}},
+            {label:'📝 三无上报不准确',result:{title:'上报人员责任',person:'上报人员',desc:'未按要求检查导致丢损延误'}}
+        ]}
+    ]},
+    wet:{title:'💧 湿损判责决策树',steps:[
+        {q:'干湿分离了吗？',opts:[
+            {label:'✗ 没有分离',result:{title:'操作人员全责+关联异常',person:'操作人员',desc:'不遵守干湿分离者承担后续相关联所有异常'}},
+            {label:'✓ 已分离但仍湿损',next:'wet_separated'}
+        ]},
+        {id:'wet_separated',q:'是否拦截报备？',opts:[
+            {label:'✓ 及时拦截1小时内报备',result:{title:'无责',person:'-',desc:'按规范拦截报备'}},
+            {label:'✗ 未拦截',result:{title:'投货人员全责',person:'投货人员',desc:'发现破损未拦截'}},
+            {label:'⚠ 报备不规范',result:{title:'报备人全责',person:'报备人',desc:'报备不规范 → 谁报备谁承担'}}
+        ]}
+    ]}
+};
+
+var currentTree=null;
+var treePath=[];
+
+function openDecisionTree(type){
+    currentTree=type;treePath=[];
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.getElementById('page-tree').classList.add('active');
+    document.getElementById('navBack').style.display='flex';
+    document.getElementById('navTitle').textContent='快速判责';
+    renderTreeStep(0)
+}
+
+function renderTreeHome(){
+    var html='<div class="detail-header"><div class="detail-icon">🌳</div><div class="detail-info"><div class="detail-title">快速判责决策树</div><div class="detail-sub">选择场景，快速定位责任归属</div></div></div>';
+    html+='<div style="display:flex;flex-direction:column;gap:12px">';
+    Object.keys(decisionTrees).forEach(function(k){
+        var t=decisionTrees[k];
+        html+='<div class="grid-card c-blue" style="display:flex;align-items:center;gap:12px" onclick="openDecisionTree(\''+k+'\')"><div style="font-size:28px">'+t.title.split(' ')[0]+'</div><div><div class="card-title">'+t.title.substring(t.title.indexOf(' ')+1)+'</div><div class="card-desc">点击开始判断</div></div></div>'
+    });
+    html+='</div>';
+    document.getElementById('treeContent').innerHTML=html
+}
+
+function renderTreeStep(stepIdx){
+    if(!currentTree)return;
+    var tree=decisionTrees[currentTree];
+    var step=tree.steps[stepIdx];
+    if(!step)return;
+    var html='<div style="margin-bottom:16px;font-size:14px;color:var(--text-s)">'+tree.title+'</div>';
+    html+='<div class="tree-step"><div class="tree-question"><span class="tq-num">'+(treePath.length+1)+'</span>'+step.q+'</div><div class="tree-options">';
+    step.opts.forEach(function(opt){
+        if(opt.result){
+            html+='<div class="tree-option" onclick="showTreeResult('+stepIdx+',\''+opt.label.replace(/'/g,"\\'")+'\')">'+opt.label+'<span class="to-arrow">→</span></div>'
+        }else if(opt.next){
+            html+='<div class="tree-option" onclick="goTreeNext(\''+opt.next+'\')">'+opt.label+'<span class="to-arrow">→</span></div>'
+        }
+    });
+    html+='</div></div>';
+    if(treePath.length>0){
+        html+='<div class="tree-back" onclick="goTreeBack()">← 返回上一步</div>'
+    }
+    document.getElementById('treeContent').innerHTML=html
+}
+
+function goTreeNext(nextId){
+    for(var i=0;i<decisionTrees[currentTree].steps.length;i++){
+        if(decisionTrees[currentTree].steps[i].id===nextId){
+            treePath.push(i);renderTreeStep(i);return
+        }
+    }
+}
+
+function goTreeBack(){
+    if(treePath.length>0){treePath.pop();renderTreeStep(treePath.length>0?treePath[treePath.length-1]:0)}
+}
+
+function showTreeResult(stepIdx,optLabel){
+    var step=decisionTrees[currentTree].steps[stepIdx];
+    var result=null;
+    step.opts.forEach(function(o){if(o.label===optLabel&&o.result)result=o.result});
+    if(!result)return;
+    var dutyColor=result.title.indexOf('全责')!==-1?'var(--error)':result.title.indexOf('共责')!==-1?'var(--warning)':'var(--success)';
+    var html='<div style="margin-bottom:16px;font-size:14px;color:var(--text-s)">'+decisionTrees[currentTree].title+'</div>';
+    html+='<div class="tree-result"><div class="tree-result-title" style="color:'+dutyColor+'">'+result.title+'</div><div class="tree-result-person">👤 责任人：<strong>'+result.person+'</strong></div><div class="tree-result-desc">'+result.desc+'</div></div>';
+    html+='<div class="tree-back" onclick="goTreeBack()">← 重新判断</div>';
+    html+='<div class="tree-back" onclick="openDecisionTree(\''+currentTree+'\')">🔄 从头开始</div>';
+    document.getElementById('treeContent').innerHTML=html
+}
+
+// ===== 导出PDF =====
+function exportPDF(){
+    var ph='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准</title><style>body{font-family:sans-serif;padding:20px;color:#1a1a1a;line-height:1.6;max-width:800px;margin:0 auto}h1{text-align:center;font-size:24px;margin-bottom:8px}.sub{text-align:center;color:#757575;margin-bottom:30px}h2{font-size:18px;padding:12px 0 8px;border-bottom:2px solid #5b4fcf;margin-top:24px}.rn{display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(91,79,207,.1);color:#5b4fcf;margin:12px 0 6px}.rt{font-size:15px;font-weight:600;margin-bottom:8px}.ib{padding:10px 12px;border-radius:8px;margin:6px 0;font-size:13px;line-height:1.7}.ib-d{background:#ffebee;border-left:3px solid #e53935;color:#c62828}.ib-w{background:#fff8e1;border-left:3px solid #f9a825;color:#e65100}.ib-s{background:#e8f5e9;border-left:3px solid #43a047;color:#2e7d32}.ib-i{background:#e3f2fd;border-left:3px solid #5b4fcf;color:#283593}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;border:1px solid #e0e0e0}th{background:#5b4fcf;color:white;padding:10px 12px;text-align:left}td{padding:9px 12px;border-bottom:.5px solid #e0e0e0}.td{color:#e53935;font-weight:600}.tw{color:#e65100;font-weight:600}.ft{text-align:center;margin-top:30px;font-size:12px;color:#bdbdbd}</style></head><body><h1>📋 NC判责标准</h1><div class="sub">物流操作责任认定规范 · V7.0 · 8章24条</div>';
+    Object.keys(chapters).forEach(function(k){
+        var ch=chapters[k];ph+='<h2>'+ch.icon+' '+ch.title+'</h2>';
+        if(ch.table){ph+='<table><tr><th>场景</th><th>责任</th><th>人员</th></tr>';ch.table.forEach(function(r){ph+='<tr><td>'+r.scene+'</td><td class="'+(r.duty==='全责'?'td':'tw')+'">'+r.duty+'</td><td>'+r.person+'</td></tr>'});ph+='</table>'}
+        else{ch.rules.forEach(function(rule){ph+='<div class="rn">'+rule.num+'</div><div class="rt">'+rule.title+'</div>';rule.items.forEach(function(item){ph+='<div class="ib ib-'+item.type[0]+'">'+item.icon+' '+item.text+'</div>'})})}
+    });
+    ph+='<div class="ft">NC判责标准 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div></body></html>';
+    var w=window.open('','_blank');w.document.write(ph);w.document.close();w.onload=function(){w.print()}
+}
+
+function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})}
+
+// 初始化
+document.addEventListener('DOMContentLoaded',function(){updateFavBadge();renderSearchHistory()});
+</script>
 </body>
 </html>
