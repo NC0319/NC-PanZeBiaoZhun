@@ -580,6 +580,26 @@ body.dark-mode::before{opacity:0.06}
 @media(max-height:500px){.form-iframe-wrap{height:340px}}
 .form-iframe-wrap iframe{width:100%;height:100%;border:none}
 
+/* ========== 新手引导 ========== */
+.guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.guide-overlay.show{display:flex}
+.guide-card{background:#fff;border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center;animation:guidePop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes guidePop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+.guide-emoji{font-size:56px;line-height:1;margin-bottom:16px;display:block}
+.guide-step{background:linear-gradient(135deg,#4F46E5,#818CF8);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-bottom:12px}
+.guide-title{font-size:20px;font-weight:800;color:#1E1B4B;margin-bottom:10px;line-height:1.3}
+.guide-desc{font-size:14px;color:#6B7280;line-height:1.7;margin-bottom:20px}
+.guide-highlight{background:#EEF2FF;color:#4F46E5;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:20px;display:inline-block}
+.guide-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#4F46E5,#6366F1);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,.35);transition:all .2s}
+.guide-btn:active{transform:scale(.95);box-shadow:0 2px 8px rgba(79,70,229,.25)}
+.guide-btn.secondary{background:#F3F4F6;color:#6B7280;box-shadow:none;font-weight:600;margin-left:8px}
+.guide-btn.secondary:active{background:#E5E7EB}
+.guide-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.guide-dot{width:8px;height:8px;border-radius:50%;background:#E5E7EB;transition:all .3s}
+.guide-dot.active{width:24px;background:linear-gradient(90deg,#4F46E5,#818CF8);border-radius:4px}
+.guide-progress{height:3px;background:#E5E7EB;border-radius:2px;margin-bottom:20px;overflow:hidden}
+.guide-progress-bar{height:100%;background:linear-gradient(90deg,#4F46E5,#818CF8);border-radius:2px;transition:width .4s ease}
+
 /* ========== Modal ========== */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.4);
@@ -756,6 +776,11 @@ body.dark-mode::before{opacity:0.06}
           <div class="hero-stat"><div class="hero-stat-num" id="stat-chapters">8</div><div class="hero-stat-label">章节</div></div>
           <div class="hero-stat"><div class="hero-stat-num" id="stat-rules">24</div><div class="hero-stat-label">规则</div></div>
           <div class="hero-stat"><div class="hero-stat-num" id="stat-new">3</div><div class="hero-stat-label">新增</div></div>
+        </div>
+        <div style="margin-top:14px">
+          <button onclick="startGuide()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px)">
+            👋 新手引导
+          </button>
         </div>
       </div>
     </div>
@@ -941,6 +966,11 @@ body.dark-mode::before{opacity:0.06}
     <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     复制规则
   </div>
+</div>
+
+<!-- 新手引导 OVERLAY -->
+<div class="guide-overlay" id="guideOverlay">
+  <div class="guide-card" id="guideCard"></div>
 </div>
 
 <!-- MODAL OVERLAY -->
@@ -1927,8 +1957,97 @@ function openFeedbackForm(){
   document.getElementById('modalOverlay').classList.add('show');
 }
 
+// ===== 新手引导 =====
+var guideSteps=[
+  {
+    emoji:'👋',
+    step:'01',
+    title:'欢迎使用 NC判责标准',
+    desc:'这里汇总了物流操作中所有责任认定规则，帮助你快速判断各类异常的责任归属。',
+    highlight:'',btnText:'开始了解 →'
+  },
+  {
+    emoji:'⚡',
+    step:'02',
+    title:'快速判责，一键搞定',
+    desc:'首页底部的「快速判责」按钮，根据你选择的情况（掉货/破损/分错等），自动定位到对应责任规则。',
+    highlight:'掉货了？破损了？点这里！',
+    btnText:'我知道了 →'
+  },
+  {
+    emoji:'⭐',
+    step:'03',
+    title:'收藏重要规则',
+    desc:'看到重要规则，点收藏 ⭐ 随时快速查看，不用每次翻找。',
+    highlight:'长按规则卡片也可收藏',
+    btnText:'继续 →'
+  },
+  {
+    emoji:'🔍',
+    step:'04',
+    title:'搜索关键字',
+    desc:'顶部搜索栏，输入任意关键字（如「破损」「延误」「责任」），快速找到相关规则。',
+    highlight:'支持模糊搜索',
+    btnText:'继续 →'
+  },
+  {
+    emoji:'📝',
+    step:'05',
+    title:'意见反馈',
+    desc:'有疑问或发现规则有误？右下角 📝 按钮可以提交反馈，我们会认真处理每一条建议。',
+    highlight:'你的反馈让我们做得更好',
+    btnText:'开始使用 ✅'
+  }
+];
+var guideCurrent=0;
+
+function renderGuideStep(){
+  var s=guideSteps[guideCurrent];
+  var card=document.getElementById('guideCard');
+  var total=guideSteps.length;
+  var progressPct=((guideCurrent)/(total-1)*100).toFixed(0);
+  var dotsHTML='';
+  for(var i=0;i<total;i++){
+    dotsHTML+='<div class="guide-dot'+(i===guideCurrent?' active':'')+'"></div>';
+  }
+  card.innerHTML='
+    <div class="guide-progress"><div class="guide-progress-bar" style="width:'+progressPct+'%"></div></div>
+    <div class="guide-step">'+s.step+'</div>
+    <span class="guide-emoji">'+s.emoji+'</span>
+    <div class="guide-title">'+s.title+'</div>
+    <div class="guide-desc">'+s.desc+'</div>
+    '+(s.highlight?'<div class="guide-highlight">'+s.highlight+'</div>':'')+
+    '<div class="guide-dots">'+dotsHTML+'</div>'+
+    '<button class="guide-btn'+(guideCurrent<total-1?' secondary':'')+'" onclick="nextGuide()">'+s.btnText+'</button>';
+}
+
+function startGuide(){
+  guideCurrent=0;
+  renderGuideStep();
+  document.getElementById('guideOverlay').classList.add('show');
+}
+
+function nextGuide(){
+  if(guideCurrent<guideSteps.length-1){
+    guideCurrent++;
+    renderGuideStep();
+  } else {
+    closeGuide();
+  }
+}
+
+function closeGuide(){
+  document.getElementById('guideOverlay').classList.remove('show');
+  localStorage.setItem('nc_guide_done','1');
+}
+
 // ===== 初始化 =====
-document.addEventListener('DOMContentLoaded',function(){init();updateFavBadge();renderHistory()});
+document.addEventListener('DOMContentLoaded',function(){
+  init();updateFavBadge();renderHistory();
+  if(!localStorage.getItem('nc_guide_done')){
+    setTimeout(startGuide,400);
+  }
+});
 </script>
 </body>
 </html>
