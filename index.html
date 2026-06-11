@@ -6,8 +6,20 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#4F46E5">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>NC判责标准 V8.0</title>
 <style>
+/* ========== 兼容性回退 ========== */
+@supports not (backdrop-filter:blur(1px)){
+  .nav-bar,.status-bar,.modal-sheet,.dash-item,.rule-card,.quick-entry,.detail-header,.update-banner{background:var(--card-solid)!important}
+}
+@supports not (env(safe-area-inset-top:0px)){
+  :root{--safe-top:20px;--safe-bottom:0px}
+}
+
 /* ========== CSS Variables ========== */
 :root {
   --primary: #4F46E5;
@@ -1208,42 +1220,45 @@ function init(){
 
 function loadStorage(){
   try{
-    var f=JSON.parse(localStorage.getItem('nc_favs')||'{}');
+    var f=JSON.parse(window._ls.getItem('nc_favs')||'{}');
     favKey='nc_favs';
     favData=f;
-    recentViews=JSON.parse(localStorage.getItem('nc_recent')||'[]');
-    searchHistory=JSON.parse(localStorage.getItem('nc_history')||'[]');
-    stats=JSON.parse(localStorage.getItem('nc_stats')||'{"viewed":0,"searches":0}');
+    recentViews=JSON.parse(window._ls.getItem('nc_recent')||'[]');
+    searchHistory=JSON.parse(window._ls.getItem('nc_history')||'[]');
+    stats=JSON.parse(window._ls.getItem('nc_stats')||'{"viewed":0,"searches":0}');
   }catch(e){favData={}}
 }
 function saveFavs(){
-  localStorage.setItem('nc_favs',JSON.stringify(favData));
+  try{window._ls.setItem('nc_favs',JSON.stringify(favData));}catch(e){}
   renderFavorites();updateFavBadge();updateStats();
 }
 function saveRecent(){
-  localStorage.setItem('nc_recent',JSON.stringify(recentViews.slice(0,10)));
+  try{window._ls.setItem('nc_recent',JSON.stringify(recentViews.slice(0,10)));}catch(e){}
   renderRecentViews();
 }
 function saveHistory(){
-  localStorage.setItem('nc_history',JSON.stringify(searchHistory.slice(0,20)));
+  try{window._ls.setItem('nc_history',JSON.stringify(searchHistory.slice(0,20)));}catch(e){}
   renderHistory();
 }
 function saveStats(){
-  localStorage.setItem('nc_stats',JSON.stringify(stats));
+  try{window._ls.setItem('nc_stats',JSON.stringify(stats));}catch(e){}
   updateStats();
 }
 function updateStats(){
-  var els=document.querySelectorAll('#dash-viewed,#dash-favs,#dash-searches');
-  document.getElementById('dash-viewed').textContent=stats.viewed;
-  document.getElementById('dash-favs').textContent=Object.keys(favData).length;
-  document.getElementById('dash-searches').textContent=stats.searches;
+  try{
+    document.getElementById('dash-viewed').textContent=stats.viewed;
+    document.getElementById('dash-favs').textContent=Object.keys(favData).length;
+    document.getElementById('dash-searches').textContent=stats.searches;
+  }catch(e){}
 }
 function checkUpdate(){
-  var last=localStorage.getItem('nc_version');
-  if(last!==APP_VERSION){
-    document.getElementById('updateBanner').style.display='flex';
-    localStorage.setItem('nc_version',APP_VERSION);
-  }
+  try{
+    var last=window._ls.getItem('nc_version');
+    if(last!==APP_VERSION){
+      document.getElementById('updateBanner').style.display='flex';
+      window._ls.setItem('nc_version',APP_VERSION);
+    }
+  }catch(e){}
 }
 function dismissUpdateBanner(){
   document.getElementById('updateBanner').style.display='none';
@@ -1262,21 +1277,25 @@ function updateClock(){
 // ===== DARK MODE =====
 var favData={};
 function toggleDarkMode(){
-  var body=document.body;
-  var isDark=body.classList.toggle('dark-mode');
-  localStorage.setItem('nc_dark',isDark?'1':'0');
-  var icon=document.getElementById('darkIcon');
-  if(isDark){
-    icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-  } else {
-    icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-  }
+  try{
+    var body=document.body;
+    var isDark=body.classList.toggle('dark-mode');
+    window._ls.setItem('nc_dark',isDark?'1':'0');
+    var icon=document.getElementById('darkIcon');
+    if(isDark){
+      icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+      icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+  }catch(e){}
 }
 (function(){
-  if(localStorage.getItem('nc_dark')==='1'||(!localStorage.getItem('nc_dark')&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
-    document.body.classList.add('dark-mode');
-    document.getElementById('darkIcon').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-  }
+  try{
+    if(window._ls.getItem('nc_dark')==='1'||(!window._ls.getItem('nc_dark')&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+      document.body.classList.add('dark-mode');
+      document.getElementById('darkIcon').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    }
+  }catch(e){}
 })();
 
 // ===== NAVIGATION =====
@@ -2038,14 +2057,34 @@ function nextGuide(){
 
 function closeGuide(){
   document.getElementById('guideOverlay').classList.remove('show');
-  localStorage.setItem('nc_guide_done','1');
+  window._ls.setItem('nc_guide_done','1');
 }
 
 // ===== 初始化 =====
+(function(){
+  'use strict';
+  // 全局错误捕获
+  window.onerror=function(msg,url,line,col,err){
+    console.error('[NC Error]',msg,'line:'+line);
+    return true;
+  };
+  window.addEventListener('unhandledrejection',function(e){
+    console.error('[NC Promise Error]',e.reason);
+  });
+  // localStorage 兼容保护
+  var _ls=null;
+  try{_ls=window.localStorage}catch(e){_ls={getItem:function(){return null},setItem:function(){},removeItem:function(){}};}
+  window._ls=_ls;
+})();
+
 document.addEventListener('DOMContentLoaded',function(){
-  init();updateFavBadge();renderHistory();
-  if(!localStorage.getItem('nc_guide_done')){
-    setTimeout(startGuide,400);
+  try{
+    init();updateFavBadge();renderHistory();
+    if(!window._ls.getItem('nc_guide_done')){
+      setTimeout(startGuide,400);
+    }
+  }catch(e){
+    console.error('[NC Init Error]',e);
   }
 });
 </script>
