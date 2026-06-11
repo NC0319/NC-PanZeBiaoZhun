@@ -360,6 +360,14 @@ body.dark-mode::before{opacity:0.06}
 .dark-mode .ib-success{color:#6EE7B7}
 .ib-info{background:var(--info-bg);border-left:3px solid var(--primary);color:#1E40AF}
 .dark-mode .ib-info{color:#93C5FD}
+.ib-d{background:var(--error-bg);border-left:3px solid var(--error);color:var(--error)}
+.dark-mode .ib-d{color:#FCA5A5}
+.ib-w{background:var(--warning-bg);border-left:3px solid var(--warning);color:#92400E}
+.dark-mode .ib-w{color:#FCD34D}
+.ib-s{background:var(--success-bg);border-left:3px solid var(--success);color:#065F46}
+.dark-mode .ib-s{color:#6EE7B7}
+.ib-i{background:var(--info-bg);border-left:3px solid var(--primary);color:#1E40AF}
+.dark-mode .ib-i{color:#93C5FD}
 /* ========== Related Tags ========== */
 .related-rules{margin-top:12px;padding-top:12px;border-top:1px dashed var(--divider)}
 .related-title{font-size:11px;color:var(--text-h);margin-bottom:6px}
@@ -1876,11 +1884,42 @@ function submitFeedback(){
 
 // ===== PDF EXPORT =====
 function exportPDF(){
-  var ph='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 V8.0</title><style>body{font-family:-apple-system,sans-serif;padding:24px;color:#1a1a1a;line-height:1.6;max-width:800px;margin:0 auto;background:#fff}h1{text-align:center;font-size:26px;margin-bottom:8px;background:linear-gradient(135deg,#4F46E5,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}h2{font-size:17px;padding:12px 0 8px;border-bottom:2px solid #4F46E5;margin-top:28px;color:#4F46E5}.ch-title{font-size:15px;padding:12px 0 6px;margin-top:20px;font-weight:700}.rn{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;background:linear-gradient(135deg,#4F46E5,#818CF8);color:#fff;margin:10px 0 6px}.rt{font-size:15px;font-weight:600;margin-bottom:8px}.ib{padding:8px 12px;border-radius:8px;margin:5px 0;font-size:13px;line-height:1.7;border-left:3px solid}.ib-d{background:#FEE2E2;border-color:#EF4444;color:#B91C1C}.ib-w{background:#FEF3C7;border-color:#F59E0B;color:#92400E}.ib-s{background:#D1FAE5;border-color:#10B981;color:#065F46}.ib-i{background:#DBEAFE;border-color:#4F46E5;color:#1E40AF}table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden}th{background:linear-gradient(135deg,#4F46E5,#3730A3);color:#fff;padding:10px 12px;text-align:left;font-weight:600}td'+r.person+'</td></tr>'});ph+='</table>'}
-        else{ch.rules.forEach(function(rule){ph+='<div class="rn">'+rule.num+'</div><div class="rt">'+rule.title+'</div>';rule.items.forEach(function(item){ph+='<div class="ib ib-'+item.type[0]+'">'+item.icon+' '+item.text+'</div>'})})}
-    });
-    ph+='<div class="ft">NC判责标准 V8.0 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div></body></html>';
-    var w=window.open('','_blank');w.document.write(ph);w.document.close();w.onload=function(){w.print()}
+  var css='body{font-family:-apple-system,sans-serif;padding:24px;color:#1a1a1a;line-height:1.6;max-width:800px;margin:0 auto;background:#fff}';
+  css+='h1{text-align:center;font-size:26px;margin-bottom:8px;background:linear-gradient(135deg,#4F46E5,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}';
+  css+='h2{font-size:17px;padding:12px 0 8px;border-bottom:2px solid #4F46E5;margin-top:28px;color:#4F46E5}';
+  css+='.ch-title{font-size:15px;padding:12px 0 6px;margin-top:20px;font-weight:700}';
+  css+='.rn{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;background:linear-gradient(135deg,#4F46E5,#818CF8);color:#fff;margin:10px 0 6px}';
+  css+='.rt{font-size:15px;font-weight:600;margin-bottom:8px}';
+  css+='.ib{padding:8px 12px;border-radius:8px;margin:5px 0;font-size:13px;line-height:1.7;border-left:3px solid}';
+  css+='.ib-d{background:#FEE2E2;border-color:#EF4444;color:#B91C1C}';
+  css+='.ib-w{background:#FEF3C7;border-color:#F59E0B;color:#92400E}';
+  css+='.ib-s{background:#D1FAE5;border-color:#10B981;color:#065F46}';
+  css+='.ib-i{background:#DBEAFE;border-color:#4F46E5;color:#1E40AF}';
+  css+='table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden}';
+  css+='th{background:linear-gradient(135deg,#4F46E5,#3730A3);color:#fff;padding:10px 12px;text-align:left;font-weight:600}';
+  css+='td{padding:9px 12px;border-bottom:.5px solid #E5E7EB}';
+  css+='.ft{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9E9E9E}';
+  var ph='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 V8.0</title><style>'+css+'</style></head><body><h1>📋 NC判责标准 V8.0</h1>';
+  Object.keys(chapters).forEach(function(k){
+    var ch=chapters[k];
+    ph+='<h2>'+ch.icon+' '+ch.title+'</h2>';
+    if(ch.table){
+      ph+='<table><tr><th>场景</th><th>责任</th><th>人员</th></tr>';
+      ch.table.forEach(function(r){
+        ph+='<tr><td>'+r.scene+'</td><td>'+r.duty+'</td><td>'+r.person+'</td></tr>';
+      });
+      ph+='</table>';
+    } else {
+      ch.rules.forEach(function(rule){
+        ph+='<div class="rn">'+rule.num+'</div><div class="rt">'+rule.title+'</div>';
+        rule.items.forEach(function(item){
+          ph+='<div class="ib ib-'+item.type[0]+'">'+item.icon+' '+item.text+'</div>';
+        });
+      });
+    }
+  });
+  ph+='<div class="ft">NC判责标准 V8.0 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div></body></html>';
+  var w=window.open('','_blank');w.document.write(ph);w.document.close();w.onload=function(){w.print()}
 }
 
 function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})}
