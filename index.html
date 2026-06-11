@@ -574,6 +574,12 @@ body.dark-mode::before{opacity:0.06}
 .empty-state svg{width:56px;height:56px;fill:none;stroke:var(--text-h);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin:0 auto 16px;display:block;opacity:.4}
 .empty-text{font-size:15px;color:var(--text-s)}
 .empty-sub{font-size:13px;color:var(--text-h);margin-top:6px}
+/* ========== Form Iframe Modal ========== */
+.form-iframe-wrap{width:100%;height:480px;border:none;border-radius:12px;background:#fff}
+@media(max-height:600px){.form-iframe-wrap{height:400px}}
+@media(max-height:500px){.form-iframe-wrap{height:340px}}
+.form-iframe-wrap iframe{width:100%;height:100%;border:none}
+
 /* ========== Modal ========== */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.4);
@@ -911,7 +917,7 @@ body.dark-mode::before{opacity:0.06}
 </div>
 
 <!-- FAB -->
-<button class="fab" onclick="window.open('https://wj.qq.com/s2/27004362/4c51/', '_blank')" title="反馈建议">
+<button class="fab" onclick="openFeedbackForm()" title="反馈建议">
   <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 </button>
 
@@ -1910,6 +1916,16 @@ function exportPDF(){
 }
 
 function scrollToTop(){document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})}
+
+// ===== 意见反馈表单 =====
+function openFeedbackForm(){
+  var html='<div class="modal-title">📝 意见反馈</div>';
+  html+='<div class="form-iframe-wrap">';
+  html+='<iframe src="https://wj.qq.com/s2/27004362/4c51/" frameborder="0" allow="microphone;camera"></iframe>';
+  html+='</div>';
+  document.getElementById('modalContent').innerHTML=html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded',function(){init();updateFavBadge();renderHistory()});
