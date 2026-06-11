@@ -911,7 +911,7 @@ body.dark-mode::before{opacity:0.06}
 </div>
 
 <!-- FAB -->
-<button class="fab" onclick="openFeedback()" title="反馈建议">
+<button class="fab" onclick="window.open('https://wj.qq.com/s2/27004362/4c51/', '_blank')" title="反馈建议">
   <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 </button>
 
@@ -1867,24 +1867,6 @@ function initPullToRefresh(){
       },1200);
     }
   });
-}
-
-// ===== FEEDBACK =====
-function openFeedback(){
-  var html='<div class="modal-title">反馈建议</div>';
-  html+='<textarea class="feedback-input" id="feedbackText" placeholder="请描述您遇到的问题或建议…"></textarea>';
-  html+='<button class="feedback-submit" onclick="submitFeedback()">提交反馈</button>';
-  showModal('',html);
-}
-function submitFeedback(){
-  var text=document.getElementById('feedbackText').value.trim();
-  if(!text){showToast('请输入反馈内容','warning');return;}
-  var fb=JSON.parse(localStorage.getItem('nc_feedbacks')||'[]');
-  fb.unshift({text:text,time:Date.now()});
-  if(fb.length>50)fb=fb.slice(0,50);
-  localStorage.setItem('nc_feedbacks',JSON.stringify(fb));
-  showToast('感谢您的反馈！','success');
-  closeModal();
 }
 
 // ===== PDF EXPORT =====
