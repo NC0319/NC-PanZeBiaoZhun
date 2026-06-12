@@ -1004,11 +1004,20 @@ body.dark-mode::before{opacity:0.06}
 
 <script>
 'use strict';
-/* ===== 核心前置函数（独立加载，防止大脚本失败导致按钮失灵） ===== */
+/* ===== 核心前置函数（独立加载） ===== */
 window._NC={loaded:false,renderTabs:null};
+/* 检查第二脚本加载状态 */
+setTimeout(function(){
+  if(typeof chapters==='undefined'){
+    var el=document.getElementById('chapterGrid');
+    if(el)el.innerHTML+='<div style="text-align:center;padding:40px;color:#EF4444;font-size:14px"><b>⚠️ 页面加载不完整</b><br>请尝试<a href="https://nc0319.github.io/NC-PanZeBiaoZhun/?r='+Date.now()+'" style="color:#4F46E5;font-weight:600">刷新页面</a>或清除浏览器缓存</div>';
+  }
+},1500);
 function openChapter(n){
-  try{var ch=chapters[n];if(!ch||!window._NC.loaded)return;
-    showPage('chapter');doChapter(ch,n);
+  try{
+    if(typeof chapters==='undefined'||!chapters[n])return;
+    if(typeof showPage==='function')showPage('chapter');
+    if(typeof doChapter==='function')doChapter(chapters[n],n);
   }catch(e){console.error('[openChapter]',e);}
 }
 function switchTab(page){
@@ -1017,8 +1026,8 @@ function switchTab(page){
     for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');
     var el=document.getElementById('page-'+page);
     if(el)el.classList.add('active');
-    renderHistory();
-    if(window._NC.renderTabs)window._NC.renderTabs(page);
+    try{if(typeof renderHistory==='function')renderHistory();}catch(e){}
+    if(window._NC&&window._NC.renderTabs)window._NC.renderTabs(page);
   }catch(e){console.error('[switchTab]',e);}
 }
 function openFeedbackForm(){
@@ -1071,8 +1080,8 @@ function scrollToTop(){try{document.getElementById('mainContent').scrollTo({top:
 function goBack(){try{switchTab('home')}catch(e){}}
 function nativeShare(){try{if(navigator.share)navigator.share({title:'NC判责标准',url:location.href})}catch(e){}}
 function openRule(num){try{
-  if(!window._NC.loaded||!window._NC.openRuleCB)return;
-  window._NC.openRuleCB(num);
+  if(typeof findAndOpenRule==='function'){findAndOpenRule(num);return;}
+  if(window._NC&&window._NC.openRuleCB){window._NC.openRuleCB(num);}
 }catch(e){}}
 </script><script>
 'use strict';
