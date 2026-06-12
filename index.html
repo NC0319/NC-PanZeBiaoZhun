@@ -1004,6 +1004,78 @@ body.dark-mode::before{opacity:0.06}
 
 <script>
 'use strict';
+/* ===== 核心前置函数（独立加载，防止大脚本失败导致按钮失灵） ===== */
+window._NC={loaded:false,renderTabs:null};
+function openChapter(n){
+  try{var ch=chapters[n];if(!ch||!window._NC.loaded)return;
+    showPage('chapter');doChapter(ch,n);
+  }catch(e){console.error('[openChapter]',e);}
+}
+function switchTab(page){
+  try{
+    var pages=document.querySelectorAll('.page');
+    for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');
+    var el=document.getElementById('page-'+page);
+    if(el)el.classList.add('active');
+    renderHistory();
+    if(window._NC.renderTabs)window._NC.renderTabs(page);
+  }catch(e){console.error('[switchTab]',e);}
+}
+function openFeedbackForm(){
+  try{
+    var html='<div class="modal-title">📝 意见反馈</div><div class="form-iframe-wrap"><iframe src="https://wj.qq.com/s2/27004362/4c51/" frameborder="0" allow="microphone;camera"></iframe></div>';
+    document.getElementById('modalContent').innerHTML=html;
+    document.getElementById('modalOverlay').classList.add('show');
+  }catch(e){console.error('[openFeedbackForm]',e);}
+}
+function toggleFav(num){
+  if(window._NC&&window._NC.loaded){
+    if(window.favData){
+      if(window.favData[num]){delete window.favData[num];try{window.saveFavs&&window.saveFavs()}catch(e){}showToast('已取消收藏','warning');}
+      else{window.favData[num]=1;try{window.saveFavs&&window.saveFavs()}catch(e){}showToast('已收藏','success');}
+    }
+  } else {
+    try{showToast('页面加载中，请稍后','warning')}catch(e){}
+  }
+}
+function closeModal(e){
+  if(e&&e.target!==e.currentTarget)return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function showToast(msg,type){
+  var t=document.getElementById('toast');
+  if(!t)return;
+  var icon=t.querySelector('svg'),text=t.getElementById('toastText');
+  if(!text)return;
+  t.className='toast show toast-'+type;
+  text.textContent=msg;
+  setTimeout(function(){t.className='toast'},2000);
+}
+function startGuide(){try{
+  var gc=document.getElementById('guideCard');
+  if(!gc||!window.guideSteps)return;
+  window.guideCurrent=0;
+  window.renderGuideStep&&window.renderGuideStep();
+  document.getElementById('guideOverlay').classList.add('show');
+}catch(e){}}
+function nextGuide(){try{
+  if(!window.guideSteps)return;
+  if(window.guideCurrent<window.guideSteps.length-1){window.guideCurrent++;window.renderGuideStep&&window.renderGuideStep();}
+  else{closeGuide();}
+}catch(e){}}
+function closeGuide(){try{
+  document.getElementById('guideOverlay').classList.remove('show');
+  if(window._ls){window._ls.setItem('nc_guide_done','1');window._ls.setItem('nc_guide_ver',APP_VERSION);}
+}catch(e){}}
+function scrollToTop(){try{document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})}catch(e){}}
+function goBack(){try{switchTab('home')}catch(e){}}
+function nativeShare(){try{if(navigator.share)navigator.share({title:'NC判责标准',url:location.href})}catch(e){}}
+function openRule(num){try{
+  if(!window._NC.loaded||!window._NC.openRuleCB)return;
+  window._NC.openRuleCB(num);
+}catch(e){}}
+</script><script>
+'use strict';
 /* NC判责标准 V8.0 — 优化版 */
 
 // ===== DATA =====
@@ -1225,6 +1297,7 @@ function init(){
   try{updateClock();}catch(e){console.error('[updateClock]',e);}
   setInterval(updateClock,60000);
   document.addEventListener('click',function(){document.getElementById('contextMenu').classList.remove('show')});
+  window._NC.loaded=true;
 }
 window.renderChapters2=function(){
   try{
