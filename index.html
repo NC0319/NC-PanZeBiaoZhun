@@ -856,14 +856,14 @@ body.dark-mode::before{opacity:0.06}
 
     <div class="section-title">全部章节</div>
     <div class="card-grid" id="chapterGrid">
-  <div class="grid-card c-blue" onclick="openChapter(1)"><div class="card-icon">📦</div><div class="card-title">搬运操作 · 第一章</div><div class="card-desc">第1-3条</div></div>
-  <div class="grid-card c-orange" onclick="openChapter(2)"><div class="card-icon">⭐</div><div class="card-title">特殊订单 · 第二章</div><div class="card-desc">第4条</div></div>
-  <div class="grid-card c-red" onclick="openChapter(3)"><div class="card-icon">📦</div><div class="card-title">集包袋 · 第三章</div><div class="card-desc">第5-6条</div></div>
-  <div class="grid-card c-purple" onclick="openChapter(4)"><div class="card-icon">🔍</div><div class="card-title">违禁品 · 第四章</div><div class="card-desc">第7-9条</div></div>
-  <div class="grid-card c-green" onclick="openChapter(5)"><div class="card-icon">💧</div><div class="card-title">湿损处理 · 第五章</div><div class="card-desc">第10-12条</div></div>
-  <div class="grid-card c-amber" onclick="openChapter(6)"><div class="card-icon">🚌</div><div class="card-title">中转交接 · 第六章</div><div class="card-desc">第13-17条</div></div>
-  <div class="grid-card c-pink" onclick="openChapter(7)"><div class="card-icon">💰</div><div class="card-title">费用责任 · 第七章</div><div class="card-desc">第18-22条</div></div>
-  <div class="grid-card c-indigo" onclick="openChapter(8)"><div class="card-icon">📋</div><div class="card-title">异常处理 · 第八章</div><div class="card-desc">第23-24条</div></div>
+  <div class="grid-card c-blue" onclick="openChapter(1)"><div class="card-icon">📦</div><div class="card-title">搬运操作</div><div class="card-desc">第1-3条</div></div>
+  <div class="grid-card c-orange" onclick="openChapter(2)"><div class="card-icon">⭐</div><div class="card-title">特殊订单</div><div class="card-desc">第4条</div></div>
+  <div class="grid-card c-red" onclick="openChapter(3)"><div class="card-icon">📦</div><div class="card-title">码放与装载</div><div class="card-desc">第5-6条</div></div>
+  <div class="grid-card c-purple" onclick="openChapter(4)"><div class="card-icon">🔍</div><div class="card-title">违禁品查验</div><div class="card-desc">第7-9条</div></div>
+  <div class="grid-card c-green" onclick="openChapter(5)"><div class="card-icon">💧</div><div class="card-title">湿损处理</div><div class="card-desc">第10-12条</div></div>
+  <div class="grid-card c-amber" onclick="openChapter(6)"><div class="card-icon">🚌</div><div class="card-title">中转交接</div><div class="card-desc">第13-17条</div></div>
+  <div class="grid-card c-pink" onclick="openChapter(7)"><div class="card-icon">💰</div><div class="card-title">费用责任</div><div class="card-desc">第18-22条</div></div>
+  <div class="grid-card c-indigo" onclick="openChapter(8)"><div class="card-icon">📋</div><div class="card-title">异常处理</div><div class="card-desc">第23-24条</div></div>
 </div>
   </div>
 
@@ -1236,7 +1236,7 @@ window.renderChapters2=function(){
       var ch=chapters[k];
       html+='<div class="grid-card '+ch.colorClass+'" onclick="openChapter('+k+')">';
       html+='<div class="card-icon">'+ch.icon+'</div>';
-      html+='<div class="card-title">'+(ch.title.split('·')[1]||ch.title).trim()+'</div>';
+      html+='<div class="card-title">'+(ch.title.indexOf('·')>0?ch.title.split('·')[1].trim():ch.title)+'</div>';
       html+='<div class="card-desc">'+ch.sub+'</div></div>';
     });
     el.innerHTML=html;
@@ -1449,7 +1449,7 @@ function renderChapters(){
       var ch=chapters[k];
       html+='<div class="grid-card '+ch.colorClass+'" onclick="openChapter('+k+')">';
       html+='<div class="card-icon">'+ch.icon+'</div>';
-      html+='<div class="card-title">'+ch.title.split('·')[1].trim()+' · '+ch.title.split('·')[0].trim()+'</div>';
+      html+='<div class="card-title">'+(ch.title.indexOf('·')>0?ch.title.split('·')[1].trim():ch.title)+'</div>';
       html+='<div class="card-desc">'+ch.sub+'</div></div>';
     });
     el.innerHTML=html;
@@ -2087,7 +2087,7 @@ function nextGuide(){
 
 function closeGuide(){
   document.getElementById('guideOverlay').classList.remove('show');
-  window._ls.setItem('nc_guide_done','1');
+  window._ls.setItem('nc_guide_done','1');window._ls.setItem('nc_guide_ver',APP_VERSION);
 }
 
 // ===== 初始化 =====
@@ -2111,7 +2111,9 @@ function closeGuide(){
   function doInit(){
     try{
       init();updateFavBadge();renderHistory();
-      if(!window._ls.getItem('nc_guide_done')){
+      var guideDone=window._ls.getItem('nc_guide_done');
+      var guideVer=window._ls.getItem('nc_guide_ver');
+      if(!guideDone||guideVer!==APP_VERSION){
         setTimeout(startGuide,400);
       }
     }catch(e){console.error('[NC Init Error]',e);}
