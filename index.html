@@ -1204,16 +1204,16 @@ var APP_VERSION='8.0';
 
 // ===== INIT =====
 function init(){
-  loadStorage();
-  updateStats();
-  renderChapters();
-  renderHotSearches();
-  renderHistory();
-  renderFavorites();
-  renderRecentViews();
-  updateFavBadge();
-  checkUpdate();
-  updateClock();
+  try{loadStorage();}catch(e){console.error('[loadStorage]',e);}
+  try{updateStats();}catch(e){console.error('[updateStats]',e);}
+  try{renderChapters();}catch(e){console.error('[renderChapters]',e);}
+  try{renderHotSearches();}catch(e){console.error('[renderHotSearches]',e);}
+  try{renderHistory();}catch(e){console.error('[renderHistory]',e);}
+  try{renderFavorites();}catch(e){console.error('[renderFavorites]',e);}
+  try{renderRecentViews();}catch(e){console.error('[renderRecentViews]',e);}
+  try{updateFavBadge();}catch(e){console.error('[updateFavBadge]',e);}
+  try{checkUpdate();}catch(e){console.error('[checkUpdate]',e);}
+  try{updateClock();}catch(e){console.error('[updateClock]',e);}
   setInterval(updateClock,60000);
   document.addEventListener('click',function(){document.getElementById('contextMenu').classList.remove('show')});
 }
@@ -1415,15 +1415,19 @@ function showPage(pageId){
 
 // ===== RENDER CHAPTERS =====
 function renderChapters(){
-  var html='';
-  Object.keys(chapters).forEach(function(k){
-    var ch=chapters[k];
-    html+='<div class="grid-card '+ch.colorClass+'" onclick="openChapter('+k+')">';
-    html+='<div class="card-icon">'+ch.icon+'</div>';
-    html+='<div class="card-title">'+ch.title.split('·')[1].trim()+' · '+ch.title.split('·')[0].trim()+'</div>';
-    html+='<div class="card-desc">'+ch.sub+'</div></div>';
-  });
-  document.getElementById('chapterGrid').innerHTML=html;
+  try{
+    var el=document.getElementById('chapterGrid');
+    if(!el||!chapters)return;
+    var html='';
+    Object.keys(chapters).forEach(function(k){
+      var ch=chapters[k];
+      html+='<div class="grid-card '+ch.colorClass+'" onclick="openChapter('+k+')">';
+      html+='<div class="card-icon">'+ch.icon+'</div>';
+      html+='<div class="card-title">'+ch.title.split('·')[1].trim()+' · '+ch.title.split('·')[0].trim()+'</div>';
+      html+='<div class="card-desc">'+ch.sub+'</div></div>';
+    });
+    el.innerHTML=html;
+  }catch(e){console.error('[renderChapters]',e);}
 }
 
 // ===== FAVORITES =====
@@ -2077,16 +2081,21 @@ function closeGuide(){
   window._ls=_ls;
 })();
 
-document.addEventListener('DOMContentLoaded',function(){
-  try{
-    init();updateFavBadge();renderHistory();
-    if(!window._ls.getItem('nc_guide_done')){
-      setTimeout(startGuide,400);
-    }
-  }catch(e){
-    console.error('[NC Init Error]',e);
+(function bootstrap(){
+  function doInit(){
+    try{
+      init();updateFavBadge();renderHistory();
+      if(!window._ls.getItem('nc_guide_done')){
+        setTimeout(startGuide,400);
+      }
+    }catch(e){console.error('[NC Init Error]',e);}
   }
-});
+  if(document.readyState==='complete'||document.readyState==='interactive'){
+    doInit();
+  } else {
+    document.addEventListener('DOMContentLoaded',doInit);
+  }
+})();
 </script>
 </body>
 </html>
