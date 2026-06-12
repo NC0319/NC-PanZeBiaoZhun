@@ -10,6 +10,21 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<!-- 国内加速：通过 jsDelivr CDN 加载 GitHub 文件 -->
+<script>
+(function(){
+  var cdnUrl='https://cdn.jsdelivr.net/gh/NC0319/NC-PanZeBiaoZhun@main/index.html';
+  // 如果当前页不是从 CDN 加载，尝试检测是否加载完整
+  if(location.hostname==='nc0319.github.io'||location.hostname==='github.io'){
+    // 延迟检测，如果 1.5s 后章节数据未加载，跳转到 CDN
+    setTimeout(function(){
+      if(typeof chapters==='undefined'||typeof showPage==='undefined'){
+        location.href=cdnUrl+'?r='+Date.now();
+      }
+    },1800);
+  }
+})();
+</script>
 <title>NC判责标准 V8.0</title>
 <style>
 /* ========== 兼容性回退 ========== */
