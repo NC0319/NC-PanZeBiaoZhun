@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NC判责标准 - 手机版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 15px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* 封面 */
+        .cover {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .cover-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .cover h1 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .cover .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .cover .version {
+            font-size: 14px;
+            color: #999;
+            margin-top: 20px;
+        }
+        
+        /* 目录 */
+        .toc {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .toc h2 {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .toc-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toc-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .toc-item span {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 10px;
+        }
+        
+        .toc-item:hover span {
+            color: white;
+        }
+        
+        /* 内容卡片 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .chapter-title {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .rule {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .rule-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .rule-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .rule-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        /* 提示框 */
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .danger-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .tip-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 2px solid #667eea;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+        
+        .tip-box h4 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        /* 按钮 */
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* 隐藏类 */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 封面 -->
+        <div class="cover" id="cover">
+            <div class="cover-icon">📋</div>
+            <h1>NC判责标准</h1>
+            <div class="subtitle">物流操作责任认定规范手册</div>
+            <div class="version">Version 7.0</div>
+            <button class="btn" onclick="scrollToToc()">开始查看 →</button>
+        </div>
+        
+        <!-- 目录 -->
+        <div class="toc" id="toc">
+            <h2>📚 目录</h2>
+            <div class="toc-item" onclick="scrollToChapter('chapter1')">
+                <span>第一章</span>货物搬运操作规范（第1-3条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter2')">
+                <span>第二章</span>特殊订单处理（第4条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter3')">
+                <span>第三章</span>码放与装载标准（第5-8条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter4')">
+                <span>第四章</span>分拣与交接责任（第9-11条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter5')">
+                <span>第五章</span>现场管理要求（第12-13条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter6')">
+                <span>第六章</span>异常处理流程（第14-21条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('chapter7')">
+                <span>第七章</span>工作效率与考核（第22条）
+            </div>
+            <div class="toc-item" onclick="scrollToChapter('appendix')" style="margin-top: 20px; border-top: 2px solid #667eea; padding-top: 20px;">
+                <span>附录</span>责任划分速查表
+            </div>
+        </div>
+        
+        <!-- 第一章 -->
+        <div class="card hidden" id="chapter1">
+            <div class="chapter-title">第一章：货物搬运操作规范</div>
+            
+            <div class="rule">
+                <div class="rule-number">📌 第1条</div>
+                <div class="rule-title">严禁暴力操作</div>
+                <div class="rule-content">
+                    <div class="danger-box">
+                        <strong>❌ 禁止行为：</strong><br>
+                        • 用脚踢货<br>
+                        • 坐在货上<br>
+                        • 抛货、扔货<br>
+                        • 地上拖货（距离&lt;20cm）
+                    </div>
+                    <div class="success-box" style="margin-top: 10px;">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 用托盘搬运<br>
+                        • 用笼车搬运<br>
+                        • 用周转框搬运<br>
+                        • 轻拿轻放
+                    </div>
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>被AI抓拍 → 面谈 + 承担所有损失
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">📌 第2条</div>
+                <div class="rule-title">投货操作标准</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 面单朝上（有字的面朝上）<br>
+                        • 依次投放，不要堆在一起
+                    </div>
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>未按标准导致丢失或延误 → 投货人员承担责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">📌 第3条</div>
+                <div class="rule-title">破损拦截机制</div>
+                <div class="rule-content">
+                    <div class="warning-box">
+                        <strong>⏰ 时限要求：</strong>发现破损 → 1小时内拉至异常区报备
+                    </div>
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>未拦截导致异常挂责 → 投货人员承担责任
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第二章 -->
+        <div class="card hidden" id="chapter2">
+            <div class="chapter-title">第二章：特殊订单处理</div>
+            
+            <div class="rule">
+                <div class="rule-number">⭐ 第4条</div>
+                <div class="rule-title">京准达特安订单</div>
+                <div class="rule-content">
+                    <div class="tip-box">
+                        <h4>💡 什么是特殊订单？</h4>
+                        • 京准达：客户花钱要求准时送达<br>
+                        • 特安：特殊安全保障的订单
+                    </div>
+                    
+                    <div class="success-box" style="margin-top: 10px;">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 第一时间单独交接至各条线<br>
+                        • 不允许滞留现场延误
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>超时未交接导致延误 → 转货人员承担后续责任
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第三章 -->
+        <div class="card hidden" id="chapter3">
+            <div class="chapter-title">第三章：码放与装载标准</div>
+            
+            <div class="rule">
+                <div class="rule-number">📦 第5条</div>
+                <div class="rule-title">码放三不原则（一定要记住！）</div>
+                <div class="rule-content">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <div style="font-size: 16px; margin: 10px 0;"><strong>1️⃣ 大不压小</strong> - 大箱子不要压在小箱子上</div>
+                        <div style="font-size: 16px; margin: 10px 0;"><strong>2️⃣ 重不压轻</strong> - 重货放在下面，轻货放上面</div>
+                        <div style="font-size: 16px; margin: 10px 0;"><strong>3️⃣ 长不压短</strong> - 长条货放下面或侧面</div>
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 10px;">
+                        <strong>🍷 特别提示：</strong>酒水类货物，码放高度不能超过1.2米（大约到胸口那么高）
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>未按标准操作导致运输破损 → 码板人员承担责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">📦 第6条</div>
+                <div class="rule-title">集包袋操作规范</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 在监控下面拆集包袋<br>
+                        • 把袋子翻过来抖一抖，确保没遗漏
+                    </div>
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>未翻袋或翻袋不规范 → 需承担相应责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">🚚 第7条</div>
+                <div class="rule-title">人工T20拉货规范</div>
+                <div class="rule-content">
+                    <div class="tip-box">
+                        <h4>💡 出发前检查</h4>
+                        绕着货走一圈，看看有没有容易掉下来的
+                    </div>
+                    
+                    <table style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th>场景</th>
+                                <th>责任划分</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>刚起步就掉货</td>
+                                <td style="color: #dc3545; font-weight: bold;">拣货人员全责（没码好）</td>
+                            </tr>
+                            <tr>
+                                <td>路上掉货</td>
+                                <td style="color: #ffc107; font-weight: bold;">车手 + 拣货人员 共责</td>
+                            </tr>
+                            <tr>
+                                <td>快到地方掉货</td>
+                                <td style="color: #dc3545; font-weight: bold;">车手全责（开太快/急刹车）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">🤖 第8条</div>
+                <div class="rule-title">无人T20操作规范</div>
+                <div class="rule-content">
+                    <div class="tip-box">
+                        <h4>💡 出发前检查</h4>
+                        • 检查目的地设置对不对<br>
+                        • 绕着货走一圈，评估风险<br>
+                        • 提醒码货人员调整不稳定的货物
+                    </div>
+                    
+                    <table style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th>场景</th>
+                                <th>责任划分</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>刚起步就掉货</td>
+                                <td style="color: #dc3545; font-weight: bold;">码板人员全责</td>
+                            </tr>
+                            <tr>
+                                <td>途中或到了终点掉货</td>
+                                <td style="color: #ffc107; font-weight: bold;">拣货人员 + 当班次所有人 共责</td>
+                            </tr>
+                            <tr>
+                                <td>提醒3次以上仍掉货</td>
+                                <td style="color: #dc3545; font-weight: bold;">码板人员全责（不听劝）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第四章 -->
+        <div class="card hidden" id="chapter4">
+            <div class="chapter-title">第四章：分拣与交接责任</div>
+            
+            <div class="rule">
+                <div class="rule-number">🔄 第9条</div>
+                <div class="rule-title">错分责任追究</div>
+                <div class="rule-content">
+                    <div class="warning-box">
+                        <strong>⚠️ 拣货责任：</strong>拣货人员错码托盘，拉货人员错拉，导致错分，造成延误类理赔 → 对应拣货人员承担责任
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 模组带责任：</strong>模组带错分滑槽到条线导致延误、破损 → 模组带全责（当班次所有人）
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">🔄 第10条</div>
+                <div class="rule-title">交接责任</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 要求：</strong>货到了常区（固定区域），要及时交接，不要放着不管
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>超时未交接导致影响客诉丢失等 → 交接人员责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">🔄 第11条</div>
+                <div class="rule-title">滑槽清理责任</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 要求：</strong>模组带滑槽需要及时清理，别让货堆在里面
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>清理不及时，导致货物落格撞击破损 → 抹货人员责任（人力不足除外）
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第五章 -->
+        <div class="card hidden" id="chapter5">
+            <div class="chapter-title">第五章：现场管理要求</div>
+            
+            <div class="rule">
+                <div class="rule-number">🧹 第12条</div>
+                <div class="rule-title">堵货疏通</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 要求：</strong>回流及操作区出现堵货需及时疏通，别让货越堆越多
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>未及时清理导致异常 → 对应操作区域人员承担责任（人力不足除外）
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">🧺 第13条</div>
+                <div class="rule-title">入笼标准</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 要求：</strong>栋货入笼需进行货物码放，不允许随意入笼车
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>未按标准操作导致异常，发生破损 → 拣货人员承担责任
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第六章 -->
+        <div class="card hidden" id="chapter6">
+            <div class="chapter-title">第六章：异常处理流程</div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第14条</div>
+                <div class="rule-title">发货组回流破损处理</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 不要乱拉，让他们自己拉过来<br>
+                        • 发邮件报备<br>
+                        • 所有拉至异常组的异常破损单需阐明异常发生地点、情况
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第15条</div>
+                <div class="rule-title">人为破损责任</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 主动承担：</strong>自己人为造成的破损，自己主动承担
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>❌ 禁止：</strong>禁止混淆到回流或者卸车拦截报备货物里面
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 10px;">
+                        <strong>⚠️ 后果：</strong>如果产生理赔挂责，一经发现 → 责任人理赔全责，且签低效网格一天
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第16条</div>
+                <div class="rule-title">意外事故处理</div>
+                <div class="rule-content">
+                    <div class="tip-box">
+                        <h4>💡 不可抗力举例：</h4>
+                        • 地震、火灾<br>
+                        • 头顶上方灯带掉落<br>
+                        • 人被后面物体撞击<br>
+                        • 高笼框开门掉货
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>⚠️ 责任划分：</strong>如遇意外事故或不可抗力因素，发生破损 → 责任人与当班次所有人共责
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第17条</div>
+                <div class="rule-title">异常报备规范</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 报备标准：</strong>异常严格按照判责规定7.0报备修复下发，保证报备准确性
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>出现报备不规范 → 谁报备的谁承担责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第18条</div>
+                <div class="rule-title">异常破损订单处理</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 正确做法：</strong><br>
+                        • 异常破损订单及时处理<br>
+                        • 当波次无法下发，需验货滞留登记台账
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>⏰ 时限：</strong>无客观原因，不允许超过24H
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第19条</div>
+                <div class="rule-title">异常前置处理</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 处理原则：</strong>异常及时前置处理丢破损，联系客户及商家把损失降到最低，积极耐心
+                    </div>
+                    
+                    <div class="warning-box" style="margin-top: 15px;">
+                        <strong>❌ 禁止：</strong>不允许出现连续多次买赔
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>📞 高值物品处理：</strong>必须联系商家客户至少两方，电话必须通话三个以上
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第20条</div>
+                <div class="rule-title">三无上报规范</div>
+                <div class="rule-content">
+                    <div class="tip-box">
+                        <h4>💡 什么是"三无"？</h4>
+                        • 无面单<br>
+                        • 无信息<br>
+                        • 无归属
+                    </div>
+                    
+                    <div class="success-box" style="margin-top: 15px;">
+                        <strong>✅ 上报要求：</strong>同位置单号需上报准确，多检查三无，确认无误再上报
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 后果：</strong>未按要求检查导致丢损延误 → 上报人员责任
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rule">
+                <div class="rule-number">⚠️ 第21条</div>
+                <div class="rule-title">异常判责举证</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 处理流程：</strong>异常判责举证自身原因举证判责新都由异常员自行处理闭环
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 第七章 -->
+        <div class="card hidden" id="chapter7">
+            <div class="chapter-title">第七章：工作效率与考核</div>
+            
+            <div class="rule">
+                <div class="rule-number">⏰ 第22条</div>
+                <div class="rule-title">工作时效要求</div>
+                <div class="rule-content">
+                    <div class="success-box">
+                        <strong>✅ 要求：</strong><br>
+                        • 每日工作及时处理<br>
+                        • 禁止现场堆积多个异常破损订单
+                    </div>
+                    
+                    <div class="danger-box" style="margin-top: 15px;">
+                        <strong>⚠️ 考核标准：</strong>连续超过3天堆积多个破损订单未处理下传 → 签低效网格一天
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tip-box" style="margin-top: 30px;">
+                <h4>💡 温馨提示</h4>
+                <p>签低效网格 = 一种处罚措施，类似于"抄作业"或"坐冷板凳"，期间工作效率要求更高，压力更大。</p>
+            </div>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+        
+        <!-- 附录 -->
+        <div class="card hidden" id="appendix">
+            <div class="chapter-title">附录：责任划分速查表</div>
+            
+            <div class="tip-box">
+                <h4>💡 使用说明</h4>
+                <p>遇到责任纠纷时，快速查看此表，明确责任归属。</p>
+            </div>
+            
+            <table style="margin-top: 15px; font-size: 14px;">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">场景</th>
+                        <th style="width: 30%;">责任类型</th>
+                        <th style="width: 30%;">责任人员</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>人工T20起步掉货</td>
+                        <td style="color: #dc3545; font-weight: bold;">全责</td>
+                        <td>拣货人员</td>
+                    </tr>
+                    <tr>
+                        <td>人工T20途中掉货</td>
+                        <td style="color: #ffc107; font-weight: bold;">共责</td>
+                        <td>车手、拣货人员</td>
+                    </tr>
+                    <tr>
+                        <td>人工T20终点掉货</td>
+                        <td style="color: #dc3545; font-weight: bold;">全责</td>
+                        <td>车手</td>
+                    </tr>
+                    <tr>
+                        <td>无人T20起步掉货</td>
+                        <td style="color: #dc3545; font-weight: bold;">全责</td>
+                        <td>码板人员</td>
+                    </tr>
+                    <tr>
+                        <td>无人T20途中/终点掉货</td>
+                        <td style="color: #ffc107; font-weight: bold;">共责</td>
+                        <td>拣货人员与当班次所有人</td>
+                    </tr>
+                    <tr>
+                        <td>提醒3次以上仍掉货</td>
+                        <td style="color: #dc3545; font-weight: bold;">全责</td>
+                        <td>码板人员</td>
+                    </tr>
+                    <tr>
+                        <td>意外事故/不可抗力</td>
+                        <td style="color: #ffc107; font-weight: bold;">共责</td>
+                        <td>责任人与当班次所有人</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <button class="btn" onclick="scrollToToc()">← 返回目录</button>
+        </div>
+    </div>
+    
+    <script>
+        // 滚动到目录
+        function scrollToToc() {
+            // 隐藏所有章节
+            const chapters = document.querySelectorAll('.card');
+            chapters.forEach(chapter => chapter.classList.add('hidden'));
+            
+            // 显示目录
+            document.getElementById('toc').classList.remove('hidden');
+            document.getElementById('cover').classList.remove('hidden');
+            
+            // 滚动到目录
+            document.getElementById('toc').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 滚动到章节
+        function scrollToChapter(chapterId) {
+            // 隐藏封面和目录
+            document.getElementById('cover').classList.add('hidden');
+            document.getElementById('toc').classList.add('hidden');
+            
+            // 隐藏所有章节
+            const chapters = document.querySelectorAll('.card');
+            chapters.forEach(chapter => chapter.classList.add('hidden'));
+            
+            // 显示目标章节
+            const targetChapter = document.getElementById(chapterId);
+            if (targetChapter) {
+                targetChapter.classList.remove('hidden');
+                targetChapter.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // 页面加载完成
+        window.onload = function() {
+            console.log('NC判责标准 手机网页版 已加载');
+        }
+    </script>
+</body>
+</html>
