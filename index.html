@@ -1126,6 +1126,34 @@ body.dark-mode::before{opacity:0.06}
   transform: translateY(-1px);
 }
 
+
+/* ========== 页面加载进度条 ========== */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--accent));
+  z-index: 10000;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+#progress-bar.done {
+  opacity: 0;
+}
+
+/* 加载动画 */
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+#progress-bar.loading {
+  animation: progressPulse 1.5s ease infinite;
+}
+
 </style>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
@@ -1137,6 +1165,73 @@ body.dark-mode::before{opacity:0.06}
 <meta http-equiv="x-dns-prefetch-control" content="on">
 </head>
 <body>
+
+<!-- 页面加载进度条 -->
+<div id="progress-bar"></div>
+
+<script>
+// 页面加载进度条
+(function() {
+  const progressBar = document.getElementById('progress-bar');
+  let progress = 0;
+  
+  // 更新进度条
+  function updateProgress(value) {
+    progress = Math.max(progress, value);
+    progressBar.style.width = progress + '%';
+    
+    if (progress >= 100) {
+      progressBar.classList.add('done');
+      setTimeout(() => {
+        progressBar.style.display = 'none';
+      }, 300);
+    }
+  }
+  
+  // 模拟进度（根据实际加载情况）
+  function simulateProgress() {
+    // 初始快速到30%
+    updateProgress(30);
+    
+    // DOM解析完成
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        updateProgress(70);
+      });
+    } else {
+      updateProgress(70);
+    }
+    
+    // 窗口加载完成
+    window.addEventListener('load', () => {
+      updateProgress(100);
+    });
+    
+    // 如果加载慢，逐步增加
+    let slowLoad = setInterval(() => {
+      if (progress < 90) {
+        updateProgress(progress + 5);
+      } else {
+        clearInterval(slowLoad);
+      }
+    }, 300);
+    
+    // 5秒后强制完成
+    setTimeout(() => {
+      updateProgress(100);
+      clearInterval(slowLoad);
+    }, 5000);
+  }
+  
+  // 开始
+  if (document.readyState === 'complete') {
+    progressBar.style.display = 'none';
+  } else {
+    simulateProgress();
+  }
+})();
+</script>
+
 
 <!-- 打印标题（只在打印时显示） -->
 <div class="print-header" style="display:none;">
@@ -2889,6 +2984,34 @@ function exportPDF(){
   transform: translateY(-1px);
 }
 
+
+/* ========== 页面加载进度条 ========== */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--accent));
+  z-index: 10000;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+#progress-bar.done {
+  opacity: 0;
+}
+
+/* 加载动画 */
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+#progress-bar.loading {
+  animation: progressPulse 1.5s ease infinite;
+}
+
 </style>
 <!-- 预加载关键资源 -->
 <link rel="prefetch" href="#search">
@@ -2897,6 +3020,73 @@ function exportPDF(){
 <!-- 告诉浏览器这是一个快速站点 -->
 <meta http-equiv="x-dns-prefetch-control" content="on">
 </head><body>
+
+<!-- 页面加载进度条 -->
+<div id="progress-bar"></div>
+
+<script>
+// 页面加载进度条
+(function() {
+  const progressBar = document.getElementById('progress-bar');
+  let progress = 0;
+  
+  // 更新进度条
+  function updateProgress(value) {
+    progress = Math.max(progress, value);
+    progressBar.style.width = progress + '%';
+    
+    if (progress >= 100) {
+      progressBar.classList.add('done');
+      setTimeout(() => {
+        progressBar.style.display = 'none';
+      }, 300);
+    }
+  }
+  
+  // 模拟进度（根据实际加载情况）
+  function simulateProgress() {
+    // 初始快速到30%
+    updateProgress(30);
+    
+    // DOM解析完成
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        updateProgress(70);
+      });
+    } else {
+      updateProgress(70);
+    }
+    
+    // 窗口加载完成
+    window.addEventListener('load', () => {
+      updateProgress(100);
+    });
+    
+    // 如果加载慢，逐步增加
+    let slowLoad = setInterval(() => {
+      if (progress < 90) {
+        updateProgress(progress + 5);
+      } else {
+        clearInterval(slowLoad);
+      }
+    }, 300);
+    
+    // 5秒后强制完成
+    setTimeout(() => {
+      updateProgress(100);
+      clearInterval(slowLoad);
+    }, 5000);
+  }
+  
+  // 开始
+  if (document.readyState === 'complete') {
+    progressBar.style.display = 'none';
+  } else {
+    simulateProgress();
+  }
+})();
+</script>
+
 
 <!-- 打印标题（只在打印时显示） -->
 <div class="print-header" style="display:none;">
