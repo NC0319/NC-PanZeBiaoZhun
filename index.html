@@ -764,6 +764,35 @@ body.dark-mode::before{opacity:0.06}
   }
 }
 
+
+/* ========== 分享按钮 ========== */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(219,234,254,0.6);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4F46E5;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.share-btn:hover {
+  background: #4F46E5;
+  color: white;
+  border-color: #4F46E5;
+}
+
+.share-btn.copied {
+  background: #10B981;
+  color: white;
+  border-color: #10B981;
+}
+
 </style>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </head>
@@ -2145,6 +2174,35 @@ function exportPDF(){
   }
 }
 
+
+/* ========== 分享按钮 ========== */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(219,234,254,0.6);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4F46E5;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.share-btn:hover {
+  background: #4F46E5;
+  color: white;
+  border-color: #4F46E5;
+}
+
+.share-btn.copied {
+  background: #10B981;
+  color: white;
+  border-color: #10B981;
+}
+
 </style></head><body><h1>📋 NC判责标准 V8.0</h1>';
   Object.keys(chapters).forEach(function(k){
     var ch=chapters[k];
@@ -2189,6 +2247,74 @@ function exportPDF(){
       behavior: 'smooth'
     });
   });
+})();
+</script>
+
+
+<script>
+(function() {
+  function addShareButtons() {
+    const rules = document.querySelectorAll('.rule-card, .quick-entry, [class*="rule"], [class*="item"]');
+    rules.forEach((rule, index) => {
+      if (!rule.id) {
+        rule.id = 'item-' + (index + 1);
+      }
+      
+      const header = rule.querySelector('.rule-header, .entry-header, h3, h4') || rule;
+      if (header && !header.querySelector('.share-btn')) {
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'share-btn';
+        shareBtn.innerHTML = '📤 分享';
+        shareBtn.title = '复制直达链接';
+        
+        shareBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const url = window.location.origin + window.location.pathname + '#' + rule.id;
+          
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+              shareBtn.innerHTML = '✅ 已复制';
+              shareBtn.classList.add('copied');
+              setTimeout(() => {
+                shareBtn.innerHTML = '📤 分享';
+                shareBtn.classList.remove('copied');
+              }, 2000);
+            });
+          }
+        });
+        
+        header.style.position = 'relative';
+        header.appendChild(shareBtn);
+      }
+    });
+  }
+  
+  function scrollToRule() {
+    const hash = window.location.hash;
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.transition = 'box-shadow 0.3s';
+          el.style.boxShadow = '0 0 0 3px #4F46E5';
+          setTimeout(() => { el.style.boxShadow = ''; }, 3000);
+        }, 500);
+      }
+    }
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      addShareButtons();
+      scrollToRule();
+    });
+  } else {
+    addShareButtons();
+    scrollToRule();
+  }
+  
+  window.addEventListener('hashchange', scrollToRule);
 })();
 </script>
 
@@ -2352,6 +2478,74 @@ function closeGuide(){
       behavior: 'smooth'
     });
   });
+})();
+</script>
+
+
+<script>
+(function() {
+  function addShareButtons() {
+    const rules = document.querySelectorAll('.rule-card, .quick-entry, [class*="rule"], [class*="item"]');
+    rules.forEach((rule, index) => {
+      if (!rule.id) {
+        rule.id = 'item-' + (index + 1);
+      }
+      
+      const header = rule.querySelector('.rule-header, .entry-header, h3, h4') || rule;
+      if (header && !header.querySelector('.share-btn')) {
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'share-btn';
+        shareBtn.innerHTML = '📤 分享';
+        shareBtn.title = '复制直达链接';
+        
+        shareBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const url = window.location.origin + window.location.pathname + '#' + rule.id;
+          
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(() => {
+              shareBtn.innerHTML = '✅ 已复制';
+              shareBtn.classList.add('copied');
+              setTimeout(() => {
+                shareBtn.innerHTML = '📤 分享';
+                shareBtn.classList.remove('copied');
+              }, 2000);
+            });
+          }
+        });
+        
+        header.style.position = 'relative';
+        header.appendChild(shareBtn);
+      }
+    });
+  }
+  
+  function scrollToRule() {
+    const hash = window.location.hash;
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.transition = 'box-shadow 0.3s';
+          el.style.boxShadow = '0 0 0 3px #4F46E5';
+          setTimeout(() => { el.style.boxShadow = ''; }, 3000);
+        }, 500);
+      }
+    }
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      addShareButtons();
+      scrollToRule();
+    });
+  } else {
+    addShareButtons();
+    scrollToRule();
+  }
+  
+  window.addEventListener('hashchange', scrollToRule);
 })();
 </script>
 
