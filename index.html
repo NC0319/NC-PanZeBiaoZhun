@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- ========== CDN加速优化 ========== -->
+<!-- DNS预解析 -->
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link rel="dns-prefetch" href="//fonts.gstatic.com">
+
+<!-- 预连接到关键域名 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- 使用jsDelivr CDN加速常用库 -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/inter-ui@3.0.0-alpha.4/fonts/inter-ui-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+
 <!-- SEO优化 -->
 <meta name="description" content="NC判责标准 V8.0 - 内江仓库标准化判责指南，涵盖破损、少货、错发、质量等判责规则">
 <meta name="keywords" content="NC判责标准,内江仓库,判责规则,仓储管理">
@@ -963,6 +978,13 @@ body.dark-mode::before{opacity:0.06}
 
 </style>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<!-- 预加载关键资源 -->
+<link rel="prefetch" href="#search">
+<link rel="prefetch" href="#rules">
+
+<!-- 告诉浏览器这是一个快速站点 -->
+<meta http-equiv="x-dns-prefetch-control" content="on">
 </head>
 <body>
 
@@ -2298,6 +2320,21 @@ function exportPDF(){
   css+='td{padding:9px 12px;border-bottom:.5px solid #E5E7EB}';
   css+='.ft{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9E9E9E}';
   var ph='<!DOCTYPE html><html lang="zh-CN"><head>
+<!-- ========== CDN加速优化 ========== -->
+<!-- DNS预解析 -->
+<link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link rel="dns-prefetch" href="//fonts.gstatic.com">
+
+<!-- 预连接到关键域名 -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- 使用jsDelivr CDN加速常用库 -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/inter-ui@3.0.0-alpha.4/fonts/inter-ui-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+
 <!-- SEO优化 -->
 <meta name="description" content="NC判责标准 V8.0 - 内江仓库标准化判责指南，涵盖破损、少货、错发、质量等判责规则">
 <meta name="keywords" content="NC判责标准,内江仓库,判责规则,仓储管理">
@@ -2539,7 +2576,14 @@ function exportPDF(){
   }
 }
 
-</style></head><body><h1>📋 NC判责标准 V8.0</h1>';
+</style>
+<!-- 预加载关键资源 -->
+<link rel="prefetch" href="#search">
+<link rel="prefetch" href="#rules">
+
+<!-- 告诉浏览器这是一个快速站点 -->
+<meta http-equiv="x-dns-prefetch-control" content="on">
+</head><body><h1>📋 NC判责标准 V8.0</h1>';
   Object.keys(chapters).forEach(function(k){
     var ch=chapters[k];
     ph+='<h2>'+ch.icon+' '+ch.title+'</h2>';
@@ -2842,6 +2886,44 @@ function exportPDF(){
     init();
   }
 })();
+</script>
+
+
+<!-- Service Worker 注册（缓存加速） -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // 创建内联Service Worker
+    const swCode = `
+      const CACHE_NAME = 'nc-panzb-v1';
+      const urlsToCache = [
+        '/',
+        '/index.html'
+      ];
+      
+      self.addEventListener('install', event => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(urlsToCache))
+        );
+      });
+      
+      self.addEventListener('fetch', event => {
+        event.respondWith(
+          caches.match(event.request)
+            .then(response => response || fetch(event.request))
+        );
+      });
+    `;
+    
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swUrl)
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW registration failed'));
+  });
+}
 </script>
 
 </body></html>';
@@ -3263,6 +3345,44 @@ function closeGuide(){
     init();
   }
 })();
+</script>
+
+
+<!-- Service Worker 注册（缓存加速） -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // 创建内联Service Worker
+    const swCode = `
+      const CACHE_NAME = 'nc-panzb-v1';
+      const urlsToCache = [
+        '/',
+        '/index.html'
+      ];
+      
+      self.addEventListener('install', event => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(urlsToCache))
+        );
+      });
+      
+      self.addEventListener('fetch', event => {
+        event.respondWith(
+          caches.match(event.request)
+            .then(response => response || fetch(event.request))
+        );
+      });
+    `;
+    
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swUrl)
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW registration failed'));
+  });
+}
 </script>
 
 </body>
