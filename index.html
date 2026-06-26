@@ -719,6 +719,51 @@ body.dark-mode::before{opacity:0.06}
 @media (min-width:500px){.card-grid{grid-template-columns:repeat(3,1fr)};hero-card{padding:32px 24px};hero-title{font-size:28px}}
 @media (min-width:768px){.card-grid{grid-template-columns:repeat(4,1fr)};hero-card{padding:36px 28px};hero-title{font-size:30px}}
 @media print{body *{visibility:hidden}#printArea,#printArea *{visibility:visible}#printArea{position:absolute;left:0;top:0;width:100%}.nav-bar,.status-bar,.bottom-nav,.fab,.no-print,.update-banner{display:none!important}.page{display:none!important}}
+
+/* ========== 返回顶部按钮 ========== */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.6);
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}
+
 </style>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </head>
@@ -2055,7 +2100,52 @@ function exportPDF(){
   css+='th{background:linear-gradient(135deg,#4F46E5,#3730A3);color:#fff;padding:10px 12px;text-align:left;font-weight:600}';
   css+='td{padding:9px 12px;border-bottom:.5px solid #E5E7EB}';
   css+='.ft{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9E9E9E}';
-  var ph='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 V8.0</title><style>'+css+'</style></head><body><h1>📋 NC判责标准 V8.0</h1>';
+  var ph='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>NC判责标准 V8.0</title><style>'+css+'
+/* ========== 返回顶部按钮 ========== */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.6);
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}
+
+</style></head><body><h1>📋 NC判责标准 V8.0</h1>';
   Object.keys(chapters).forEach(function(k){
     var ch=chapters[k];
     ph+='<h2>'+ch.icon+' '+ch.title+'</h2>';
@@ -2074,7 +2164,35 @@ function exportPDF(){
       });
     }
   });
-  ph+='<div class="ft">NC判责标准 V8.0 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div></body></html>';
+  ph+='<div class="ft">NC判责标准 V8.0 · 生成时间：'+new Date().toLocaleString('zh-CN')+'</div>
+<!-- 返回顶部按钮 -->
+<button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+
+<script>
+// 返回顶部功能
+(function() {
+  const btn = document.getElementById('backToTop');
+  
+  // 监听滚动
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 300) {
+      btn.classList.add('show');
+    } else {
+      btn.classList.remove('show');
+    }
+  });
+  
+  // 点击返回顶部
+  btn.addEventListener('click', function() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+})();
+</script>
+
+</body></html>';
   var w=window.open('','_blank');w.document.write(ph);w.document.close();w.onload=function(){w.print()}
 }
 
@@ -2209,5 +2327,33 @@ function closeGuide(){
   }
 })();
 </script>
+
+<!-- 返回顶部按钮 -->
+<button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+
+<script>
+// 返回顶部功能
+(function() {
+  const btn = document.getElementById('backToTop');
+  
+  // 监听滚动
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 300) {
+      btn.classList.add('show');
+    } else {
+      btn.classList.remove('show');
+    }
+  });
+  
+  // 点击返回顶部
+  btn.addEventListener('click', function() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
